@@ -215,6 +215,39 @@ OLLAMA_SYSTEM = (
 
 _ollama_chat = {"warm": False}
 
+CHAT_LANG_NAMES = {"en": "English", "pt": "Brazilian Portuguese",
+                   "es": "Spanish", "fr": "French", "de": "German",
+                   "ja": "Japanese", "ko": "Korean", "ru": "Russian",
+                   "zh": "Chinese", "he": "Hebrew", "pl": "Polish"}
+
+
+def translate_ollama_to(text, model, target, timeout=12):
+    """LLM translation of a chat message into ANY language (viewer feed).
+    Same quality rules as the streamer's own translation."""
+    lang = CHAT_LANG_NAMES.get(target, target)
+    system = (
+        f"You translate live stream chat messages into {lang}. If a message "
+        f"is already entirely in {lang}, reply with exactly SKIP. Otherwise "
+        f"reply with ONLY the {lang} translation - no quotes, no notes. "
+        "Translate slang naturally for a gamer audience. Keep emote words, "
+        "usernames, kkkk laughter and gaming terms (GG, clutch, lag, skin, "
+        "buff, nerf, elo) unchanged."
+    )
+    body = json.dumps({
+        "model": model, "stream": False,
+        "messages": [{"role": "system", "content": system},
+                     {"role": "user", "content": text}],
+        "options": {"temperature": 0.2, "num_predict": 150},
+        "keep_alive": "2h", "think": False,
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        ENGINE_URL + "/api/chat", data=body,
+        headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        out = json.loads(r.read())
+    result = out["message"]["content"].strip().strip('"')
+    return None if result == "SKIP" else result
+
 
 def warm_chat_ollama(cfg):
     """Load the chat LLM in the background; Google covers until it's warm."""
@@ -298,7 +331,8 @@ class TranslateWorker(threading.Thread):
 
     def viewer_translate(self, text):
         """Second direction: the whole chat into the AUDIENCE's language,
-        for the on-stream feed. Free engine — fast, zero VRAM."""
+        for the on-stream feed. Same engine priority as everything else:
+        local LLM first, free web engine as fallback."""
         t = text.strip()
         if len(t) < 2 or LAUGH_RE.match(t) or URL_RE.match(t):
             return None
@@ -307,6 +341,21 @@ class TranslateWorker(threading.Thread):
         if key in self.cache:
             self.cache.move_to_end(key)
             return self.cache[key][0]
+        if (_ollama_chat["warm"] and self.cfg.get("quality") != "zero"
+                and self.in_q.qsize() <= 5
+                and time.time() >= self.cooldown.get("local", 0)):
+            try:
+                tr2 = translate_ollama_to(normalize_slang(t),
+                                          self.cfg["ollama_model"], lang)
+                if tr2 and difflib.SequenceMatcher(
+                        None, tr2.lower(), t.lower()).ratio() > 0.92:
+                    tr2 = None
+                self.cache[key] = (tr2, "")
+                if len(self.cache) > 800:
+                    self.cache.popitem(last=False)
+                return tr2
+            except Exception as e:
+                log(f"viewer llm failed ({e}) — google fallback")
         try:
             url = ("https://clients5.google.com/translate_a/t"
                    f"?client=dict-chrome-ex&sl=auto&tl={lang}&q="
