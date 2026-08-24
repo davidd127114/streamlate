@@ -1,5 +1,7 @@
 # Streamlate
 
+**English** · [Português (Brasil)](README.pt-BR.md) · [Español](README.es.md)
+
 Free, local, live translation for streamers.
 
 - **Your voice → subtitles in another language, on your stream.** Any
