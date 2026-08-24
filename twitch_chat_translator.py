@@ -61,6 +61,7 @@ DEFAULTS = {
     "overlay_size": "420x270",
     "overlay_pos": "",            # custom "+x+y" from Move mode; empty = corner
     "overlay_autohide": False,
+    "overlay_ghost": True,    # fade near-invisible when the mouse is over it
     "background_dim": 0.35,   # brightness of the custom background image
     "quality": "auto",        # auto | light | tiny | zero — see quality.py
 }
@@ -822,7 +823,9 @@ class App(tk.Tk):
         self.set_status(self.base_status)
 
         if overlay:
+            self._ghost_alpha = alpha
             self.after(300, self._apply_overlay_styles)
+            self.after(500, self._ghost_tick)
             threading.Thread(target=self._overlay_tray, daemon=True).start()
 
         self.after(80, self.poll)
@@ -853,6 +856,33 @@ class App(tk.Tk):
             log(f"overlay styles applied: 0x{new:x} (clickthrough={clickthrough})")
         except Exception as e:
             log(f"overlay styles failed: {e}")
+
+    def _ghost_tick(self):
+        """Fade the overlay way down whenever the mouse is on/near it, so
+        buttons behind it (browser controls etc.) stay visible. Clicks
+        already pass through — this makes SEEING pass through too."""
+        try:
+            import ctypes
+            from ctypes import wintypes
+            pt = wintypes.POINT()
+            ctypes.windll.user32.GetCursorPos(ctypes.byref(pt))
+            m = 16
+            inside = (self.winfo_x() - m <= pt.x
+                      <= self.winfo_x() + self.winfo_width() + m
+                      and self.winfo_y() - m <= pt.y
+                      <= self.winfo_y() + self.winfo_height() + m)
+            want = (0.06 if (inside and self.overlay_locked
+                             and self.cfg.get("overlay_ghost", True))
+                    else float(self.cfg["overlay_opacity"]))
+            cur = self._ghost_alpha
+            step = 0.30 if want < cur else 0.10   # vanish fast, return soft
+            new = cur + max(min(want - cur, step), -step)
+            if abs(new - cur) > 0.004:
+                self._ghost_alpha = new
+                self.attributes("-alpha", new)
+        except Exception:
+            pass
+        self.after(60, self._ghost_tick)
 
     # ---- Move mode: unlock, drag anywhere, lock back ----
 
@@ -938,6 +968,9 @@ class App(tk.Tk):
             self.cfg["overlay_autohide"] = not self.cfg["overlay_autohide"]
             if not self.cfg["overlay_autohide"]:
                 self._overlay_show()
+        elif cmd == "ghost":
+            self.cfg["overlay_ghost"] = not self.cfg.get("overlay_ghost", True)
+            save_config(self.cfg)
         elif cmd == "exit":
             self.on_close()
             os._exit(0)
@@ -977,6 +1010,8 @@ class App(tk.Tk):
             pystray.MenuItem(tr("corner"), put("corner")),
             pystray.MenuItem(tr("autohide"), put("autohide"),
                              checked=lambda item: bool(self.cfg["overlay_autohide"])),
+            pystray.MenuItem(tr("ghost"), put("ghost"),
+                             checked=lambda item: bool(self.cfg.get("overlay_ghost", True))),
             pystray.MenuItem(tr("q_menu"), quality_submenu(self.cfg, pystray)),
             pystray.MenuItem(tr("settings"),
                              lambda icon, item: open_settings_and_restart()),
