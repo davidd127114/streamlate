@@ -15,7 +15,7 @@ python --version >> "%OUT%" 2>&1
 if exist "%APP%\.version" (type "%APP%\.version" >> "%OUT%") else (echo no .version >> "%OUT%")
 >> "%OUT%" echo.
 >> "%OUT%" echo --- key packages ---
-python -c "import importlib,sys; [print(m, 'OK' if importlib.util.find_spec(m) else 'MISSING') for m in ['sounddevice','faster_whisper','numpy','pystray','PIL','qrcode','pyaudiowpatch','pyttsx3']]" >> "%OUT%" 2>&1
+python -c "import importlib.util; [print(m, 'OK' if importlib.util.find_spec(m) else 'MISSING') for m in ['sounddevice','faster_whisper','numpy','pystray','PIL','qrcode','pyaudiowpatch','pyttsx3']]" >> "%OUT%" 2>&1
 >> "%OUT%" echo.
 >> "%OUT%" echo --- gpu ---
 nvidia-smi --query-gpu=name,memory.total --format=csv >> "%OUT%" 2>&1
