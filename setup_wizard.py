@@ -310,6 +310,7 @@ def main_gui():
         if hot_var.get().strip():
             extra_subs["hotwords"] = hot_var.get().strip()
         extra_chat = {"ui_lang": dict(UI_LANGS)[ui_var.get()],
+                      "my_lang": dict(LANGS)[spoken_var.get()],
                       "enable_chat": bool(en_chat_var.get()),
                       "enable_subs": bool(en_subs_var.get()),
                       "obs_chat_enabled": bool(obschat_var.get()),

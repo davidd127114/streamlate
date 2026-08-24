@@ -66,6 +66,7 @@ DEFAULTS = {
     "quality": "auto",        # auto | light | tiny | zero — see quality.py
     "obs_chat_enabled": False,   # translated chat feed for VIEWERS (OBS source)
     "obs_chat_lang": "pt",       # language your audience reads chat in
+    "my_lang": "en",             # language YOU read chat in (overlay + phone)
 }
 
 OVERLAY_CORNERS = ["+16+16", "-16+16", "-16-16", "+16-16"]
@@ -168,12 +169,13 @@ def normalize_slang(text):
     return _slang_re.sub(lambda m: SLANG[m.group(1).lower()], text)
 
 
-def translate_clients5(text):
+def translate_clients5(text, target="en"):
     """Google's dict-chrome-ex endpoint. Returns (translation, detected_lang).
     Separate rate-limit bucket from the gtx endpoint — survives CGNAT."""
     url = (
         "https://clients5.google.com/translate_a/t"
-        "?client=dict-chrome-ex&sl=auto&tl=en&q=" + urllib.parse.quote(text)
+        f"?client=dict-chrome-ex&sl=auto&tl={target}&q="
+        + urllib.parse.quote(text)
     )
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(req, timeout=8) as r:
@@ -187,11 +189,11 @@ def translate_clients5(text):
     return translation, detected
 
 
-def translate_gtx(text):
+def translate_gtx(text, target="en"):
     """Free Google Translate web endpoint. Returns (translation, detected_lang)."""
     url = (
         "https://translate.googleapis.com/translate_a/single"
-        "?client=gtx&sl=auto&tl=en&dt=t&q=" + urllib.parse.quote(text)
+        f"?client=gtx&sl=auto&tl={target}&dt=t&q=" + urllib.parse.quote(text)
     )
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(req, timeout=8) as r:
@@ -286,10 +288,20 @@ def translate_ollama(text, model, timeout=12):
     return translation, ""
 
 
+def _local_engine(text, cfg):
+    my = cfg.get("my_lang", "en")
+    if my == "en":
+        return translate_ollama(text, cfg["ollama_model"])
+    result = translate_ollama_to(text, cfg["ollama_model"], my)
+    return ("", my) if result is None else (result, "")
+
+
 ENGINES = [
-    ("local", lambda text, cfg: translate_ollama(text, cfg["ollama_model"])),
-    ("google", lambda text, cfg: translate_clients5(text)),
-    ("google2", lambda text, cfg: translate_gtx(text)),
+    ("local", _local_engine),
+    ("google", lambda text, cfg: translate_clients5(
+        text, cfg.get("my_lang", "en"))),
+    ("google2", lambda text, cfg: translate_gtx(
+        text, cfg.get("my_lang", "en"))),
 ]
 
 
@@ -416,7 +428,7 @@ class TranslateWorker(threading.Thread):
             self.cache[key] = (translation, detected)
             if len(self.cache) > 800:
                 self.cache.popitem(last=False)
-        if detected == "en" or not translation:
+        if detected == self.cfg.get("my_lang", "en") or not translation:
             return None
         if difflib.SequenceMatcher(None, translation.lower(), t.lower()).ratio() > 0.92:
             return None
