@@ -14,8 +14,11 @@ import hardware
 from i18n import tr
 
 LANGS = [("English", "en"), ("Portuguese (Brazil)", "pt"), ("Spanish", "es"),
-         ("French", "fr"), ("German", "de"), ("Japanese", "ja"),
-         ("Korean", "ko"), ("Russian", "ru"), ("Chinese", "zh")]
+         ("Hebrew — עברית", "he"), ("French", "fr"), ("German", "de"),
+         ("Japanese", "ja"), ("Korean", "ko"), ("Russian", "ru"),
+         ("Chinese", "zh")]
+
+HARD_SPEECH = {"he", "ja", "ko", "zh", "ru"}
 
 
 def _merge_into(path, new_keys):
@@ -42,6 +45,8 @@ def write_configs(channel, target_lang, mic_device, plan, engine_url,
     whisper_model = plan["whisper_model"]
     if spoken_lang != "en" and whisper_model.endswith(".en"):
         whisper_model = whisper_model[:-3]   # multilingual variant
+    if spoken_lang in HARD_SPEECH and plan["use_gpu"]:
+        whisper_model = "medium"             # better ears for these languages
     subs = {
         "spoken_lang": spoken_lang,
         "target_lang": target_lang,

@@ -77,6 +77,41 @@ STRINGS = {
         "wiz_need_channel": "Digite o nome do seu canal primeiro",
         "wiz_downloading": "Baixando {model} ({size}) — pode demorar um pouco…",
     },
+    "he": {
+        "starting": "Streamlate — מתחיל",
+        "line_chat": "🟣  שכבת צ'אט + דף לנייד",
+        "line_subs": "🟢  כתוביות ל-OBS",
+        "line_obs": "פתחו את OBS ועלו לשידור — כל השאר אוטומטי.",
+        "updated": "✓ עודכן לגרסה האחרונה",
+        "stopped_title": "Streamlate — נעצר",
+        "stopped_body": "שכבת הצ'אט, דף הנייד והכתוביות כבויים.",
+        "open_phone": "פתיחת דף הנייד בדפדפן",
+        "show_qr": "הצגת קוד QR לנייד",
+        "bigger": "טקסט גדול יותר",
+        "smaller": "טקסט קטן יותר",
+        "orig": "הצגה/הסתרה של המקור",
+        "bg": "החלפת תמונת רקע…",
+        "bgoff": "הסרת תמונת רקע",
+        "movemode": "מצב הזזה (גררו את השכבה)",
+        "corner": "קפיצה לפינה הבאה",
+        "autohide": "הסתרה אוטומטית כשהצ'אט שקט",
+        "exit": "יציאה",
+        "drag_hint": "◇ גררו אותי — תפריט המגש שוב לנעילה",
+        "preview": "תצוגת דף הכתוביות",
+        "obs_source": "מקור דפדפן ב-OBS",
+        "wiz_title": "Streamlate — הגדרה",
+        "wiz_channel": "הערוץ שלכם  (שם Twitch, ‎@handle של YouTube או כתובת kick.com)",
+        "wiz_speak": "אתם מדברים…",
+        "wiz_caption": "כתוביות לקול שלכם ב…",
+        "wiz_mic": "מיקרופון",
+        "wiz_mic_default": "ברירת מחדל של המערכת (אוטומטי)",
+        "wiz_engine": "מנוע תרגום (זוהה אוטומטית)",
+        "wiz_engine_tip": "טיפ: התקינו Ollama לתרגום באיכות AI",
+        "wiz_url": "כתובת מנוע מרוחק (אופציונלי — GPU שכור / ענן)",
+        "wiz_save": "שמירה וסיום",
+        "wiz_need_channel": "קודם הזינו את שם הערוץ",
+        "wiz_downloading": "מוריד את {model} ({size}) — עשוי לקחת זמן…",
+    },
     "es": {
         "starting": "Streamlate — iniciando",
         "line_chat": "🟣  Overlay del chat + página del celular",
@@ -118,7 +153,7 @@ STRINGS = {
 def system_lang():
     try:
         lid = ctypes.windll.kernel32.GetUserDefaultUILanguage() & 0xFF
-        return {0x16: "pt", 0x0A: "es"}.get(lid, "en")
+        return {0x16: "pt", 0x0A: "es", 0x0D: "he"}.get(lid, "en")
     except Exception:
         return "en"
 

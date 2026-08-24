@@ -163,7 +163,11 @@ def _gtx(text, source, target):
 
 LANG_NAMES = {"en": "English", "pt": "Brazilian Portuguese", "es": "Spanish",
               "fr": "French", "de": "German", "ja": "Japanese",
-              "ko": "Korean", "ru": "Russian", "zh": "Chinese"}
+              "ko": "Korean", "ru": "Russian", "zh": "Chinese",
+              "he": "Hebrew"}
+
+# languages where whisper's 'small' struggles — bump to 'medium' on GPU
+HARD_SPEECH = {"he", "ja", "ko", "zh", "ru"}
 
 ENGINE_URL = "http://localhost:11434"  # local Ollama, or a rented GPU box
 
@@ -267,7 +271,8 @@ OBS_HTML = """<!doctype html>
         font-family:'Segoe UI',system-ui,sans-serif; }
  #wrap { position:fixed; left:50%; bottom:3.5%; transform:translateX(-50%);
          width:72%; text-align:center; }
- .line { display:inline-block; background:rgba(0,0,0,0.55); color:#fff;
+ .line { display:inline-block; unicode-bidi:plaintext;
+         background:rgba(0,0,0,0.55); color:#fff;
          font-size:__FONT__px; line-height:1.35; font-weight:600;
          padding:6px 22px; border-radius:14px; margin-top:8px;
          text-shadow:0 2px 6px rgba(0,0,0,0.9);
@@ -427,6 +432,11 @@ def main():
         cfg["model"] = cfg["model"][:-3]
         listener.model_size = cfg["model"]
         log(f"non-English speaker: whisper model switched to '{cfg['model']}'")
+    if (listener.language in HARD_SPEECH and cfg["use_gpu"]
+            and cfg["model"] in ("base", "small")):
+        cfg["model"] = "medium"   # noticeably better for these languages
+        listener.model_size = "medium"
+        log(f"'{listener.language}' speech: whisper bumped to 'medium'")
     if not cfg["use_gpu"]:
         # force CPU so the game's GPU is never touched
         from faster_whisper import WhisperModel

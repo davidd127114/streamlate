@@ -143,12 +143,13 @@ _slang_re = re.compile(
 
 # Laughter/emote-spam in any language needs no translation:
 # kkkk jajaja jsjsjs rsrs hahaha hehe huehue xaxaxa xD lol lmao kekw
-# wwww(JP) 草(JP) ㅋㅋ/ㅎㅎ(KR) хахах/ахах(RU)
+# wwww(JP) 草(JP) ㅋㅋ/ㅎㅎ(KR) хахах/ахах(RU) חחחח(HE)
 LAUGH_RE = re.compile(
     r"(?i)^\W*(?:"
     r"k{2,}|(?:ja){2,}j*|(?:js){2,}s*|(?:rs){2,}|(?:ha){2,}h*|(?:he){2,}h*|"
     r"(?:hue){2,}|(?:xa){2,}x*|x+d+|l+o+l+|lmf?ao+|kek(?:w|a)?|omegalul|lul+|"
-    r"w{3,}|ｗ{2,}|草+|ㅋ{2,}|ㅎ{2,}|(?:ах){2,}х*|(?:ха){2,}х*|(?:хе){2,}х*"
+    r"w{3,}|ｗ{2,}|草+|ㅋ{2,}|ㅎ{2,}|(?:ах){2,}х*|(?:ха){2,}х*|(?:хе){2,}х*|"
+    r"ח{2,}"
     r")\W*$"
 )
 
@@ -520,9 +521,9 @@ async function tick(){
         let h = '<span class="t">' + m.ts + '</span>'
               + '<span class="u" style="color:' + m.color + '">' + esc(m.user) + '</span>: ';
         if (m.tr){
-          h += '<span class="tr">' + esc(m.tr) + '</span>'
-             + '<span class="orig">⤷ ' + esc(m.text) + '</span>';
-        } else { h += esc(m.text); }
+          h += '<span class="tr" dir="auto">' + esc(m.tr) + '</span>'
+             + '<span class="orig" dir="auto">⤷ ' + esc(m.text) + '</span>';
+        } else { h += '<span dir="auto">' + esc(m.text) + '</span>'; }
         div.innerHTML = h; log.appendChild(div);
       }
       while (log.children.length > 400) log.removeChild(log.firstChild);
