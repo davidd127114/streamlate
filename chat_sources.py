@@ -7,8 +7,11 @@ ui_q — the same contract as the Twitch IrcReader, so everything downstream
     Kick:    experimental — public Pusher websocket, Cloudflare-tolerant.
 """
 import json
+import re
 import threading
 import time
+
+_KICK_EMOTE = re.compile(r"\[emote:\d+:([^\]]*)\]")
 
 
 def detect_platform(channel, configured="auto"):
@@ -232,9 +235,9 @@ class KickReader(threading.Thread):
                                                               "viewer")
                         color = ((data.get("sender") or {}).get("identity")
                                  or {}).get("color", "")
-                        text = data.get("content") or ""
+                        text = _KICK_EMOTE.sub(r"\1", data.get("content") or "")
                         if text.strip():
-                            self.out_q.put((user, color or "", text))
+                            self.out_q.put((user, color or "", text.strip()))
             except Exception as e:
                 if self.stop_ev.is_set():
                     return
