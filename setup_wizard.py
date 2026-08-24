@@ -191,6 +191,26 @@ def main_gui():
                        activeforeground=FG,
                        font=("Segoe UI", 10)).pack(anchor="w")
 
+    r = row("OBS")
+    obs_lbl = tk.Label(r, text="…", bg=BG, fg="#8a8a92", justify="left",
+                       font=("Segoe UI", 10))
+    obs_lbl.pack(anchor="w", pady=2)
+
+    def _obs_status():
+        try:
+            from obs_link import status
+            state, _pw = status(chat_cfg)
+            txt, col = {
+                "ok": (tr("wiz_obs_ok"), "#9adf9e"),
+                "waiting": (tr("wiz_obs_wait"), "#e6c07b"),
+                "restart": (tr("wiz_obs_restart"), "#e6c07b"),
+                "none": (tr("wiz_obs_none"), "#8a8a92"),
+            }[state]
+            root.after(0, lambda: obs_lbl.config(text=txt, fg=col))
+        except Exception:
+            pass
+    threading.Thread(target=_obs_status, daemon=True).start()
+
     r = row(tr("wiz_engine"))
     if plan["translator"] == "ollama":
         engine_txt = (f"GPU: {plan['vram_gb']} GB → {plan['ollama_model']} "

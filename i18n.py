@@ -8,6 +8,10 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 STRINGS = {
     "en": {
+        "wiz_obs_ok": "✓ OBS linked — stream sources are added automatically",
+        "wiz_obs_wait": "OBS will link automatically the next time OBS is open",
+        "wiz_obs_restart": "Almost linked — restart OBS once to finish",
+        "wiz_obs_none": "OBS not found — install OBS to show captions on stream",
         "p_diag": "Diagnose",
         "p_repair": "Repair & restart",
         "repaired": "✓ self-repaired packages: {names}",
@@ -89,6 +93,10 @@ STRINGS = {
         "wiz_ui_lang": "App language",
     },
     "pt": {
+        "wiz_obs_ok": "✓ OBS conectado — as fontes da stream são criadas sozinhas",
+        "wiz_obs_wait": "O OBS conecta sozinho na próxima vez que ele abrir",
+        "wiz_obs_restart": "Quase lá — reinicie o OBS uma vez para concluir",
+        "wiz_obs_none": "OBS não encontrado — instale o OBS para legendas na stream",
         "p_diag": "Diagnosticar",
         "p_repair": "Reparar e reiniciar",
         "repaired": "✓ pacotes reparados sozinhos: {names}",
@@ -170,6 +178,10 @@ STRINGS = {
         "wiz_ui_lang": "Idioma do app",
     },
     "he": {
+        "wiz_obs_ok": "✓ OBS מחובר — מקורות השידור נוצרים אוטומטית",
+        "wiz_obs_wait": "OBS יתחבר אוטומטית בפעם הבאה שהוא ייפתח",
+        "wiz_obs_restart": "כמעט מחובר — הפעילו את OBS מחדש פעם אחת",
+        "wiz_obs_none": "OBS לא נמצא — התקינו OBS לכתוביות בשידור",
         "p_diag": "אבחון",
         "p_repair": "תיקון והפעלה מחדש",
         "repaired": "✓ חבילות תוקנו אוטומטית: {names}",
@@ -251,6 +263,10 @@ STRINGS = {
         "wiz_ui_lang": "שפת האפליקציה",
     },
     "pl": {
+        "wiz_obs_ok": "✓ OBS połączony — źródła streamu dodają się same",
+        "wiz_obs_wait": "OBS połączy się sam przy następnym uruchomieniu",
+        "wiz_obs_restart": "Prawie gotowe — uruchom OBS ponownie raz",
+        "wiz_obs_none": "Nie znaleziono OBS — zainstaluj OBS dla napisów na streamie",
         "p_diag": "Diagnozuj",
         "p_repair": "Napraw i uruchom ponownie",
         "repaired": "✓ samodzielnie naprawiono pakiety: {names}",
@@ -331,6 +347,10 @@ STRINGS = {
         "wiz_ui_lang": "Język aplikacji",
     },
     "ja": {
+        "wiz_obs_ok": "✓ OBS連携済み — 配信ソースは自動で追加されます",
+        "wiz_obs_wait": "次にOBSを開いたとき自動で連携します",
+        "wiz_obs_restart": "あと少し — OBSを一度再起動してください",
+        "wiz_obs_none": "OBSが見つかりません — 配信字幕にはOBSが必要です",
         "p_diag": "診断",
         "p_repair": "修復して再起動",
         "repaired": "✓ パッケージを自動修復: {names}",
@@ -411,6 +431,10 @@ STRINGS = {
         "wiz_ui_lang": "アプリの言語",
     },
     "zh": {
+        "wiz_obs_ok": "✓ 已连接 OBS — 直播源会自动创建",
+        "wiz_obs_wait": "下次打开 OBS 时会自动连接",
+        "wiz_obs_restart": "就差一步 — 重启一次 OBS 即可完成",
+        "wiz_obs_none": "未找到 OBS — 安装 OBS 才能在直播上显示字幕",
         "p_diag": "诊断",
         "p_repair": "修复并重启",
         "repaired": "✓ 已自动修复软件包: {names}",
@@ -491,6 +515,10 @@ STRINGS = {
         "wiz_ui_lang": "应用语言",
     },
     "ko": {
+        "wiz_obs_ok": "✓ OBS 연결됨 — 방송 소스가 자동으로 추가됩니다",
+        "wiz_obs_wait": "다음에 OBS를 열면 자동으로 연결됩니다",
+        "wiz_obs_restart": "거의 완료 — OBS를 한 번 재시작하세요",
+        "wiz_obs_none": "OBS 없음 — 방송 자막에는 OBS 설치가 필요합니다",
         "p_diag": "진단",
         "p_repair": "복구 후 재시작",
         "repaired": "✓ 패키지 자동 복구됨: {names}",
@@ -571,6 +599,10 @@ STRINGS = {
         "wiz_ui_lang": "앱 언어",
     },
     "es": {
+        "wiz_obs_ok": "✓ OBS conectado — las fuentes del stream se crean solas",
+        "wiz_obs_wait": "OBS se conectará solo la próxima vez que se abra",
+        "wiz_obs_restart": "Casi listo — reinicia OBS una vez para terminar",
+        "wiz_obs_none": "OBS no encontrado — instala OBS para subtítulos en el stream",
         "p_diag": "Diagnosticar",
         "p_repair": "Reparar y reiniciar",
         "repaired": "✓ paquetes autorreparados: {names}",

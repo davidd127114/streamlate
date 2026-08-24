@@ -118,9 +118,10 @@ def send_native_cc(cfg, text):
         return
     try:
         if CC["cl"] is None:
+            from obs_link import effective_password
             import obsws_python as obs
             CC["cl"] = obs.ReqClient(host="localhost", port=4455,
-                                     password=cfg.get("obs_ws_password", ""),
+                                     password=effective_password(cfg),
                                      timeout=5)
             log("native CC: connected to OBS websocket")
         CC["cl"].send_stream_caption(text[:480])
@@ -515,11 +516,11 @@ def ensure_obs_sources(cfg):
     import contextlib
     import io as _io
     try:
+        from obs_link import autolink
         import obsws_python as obs
         with contextlib.redirect_stderr(_io.StringIO()):
             cl = obs.ReqClient(host="localhost", port=4455,
-                               password=cfg.get("obs_ws_password", ""),
-                               timeout=4)
+                               password=autolink(cfg, log), timeout=4)
     except Exception:
         return False   # OBS closed / websocket off — manual setup still works
     try:
