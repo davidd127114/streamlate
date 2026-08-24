@@ -65,7 +65,7 @@ DEFAULTS = {
     "background_dim": 0.35,   # brightness of the custom background image
     "quality": "auto",        # auto | light | tiny | zero — see quality.py
     "obs_chat_enabled": False,   # translated chat feed for VIEWERS (OBS source)
-    "obs_chat_lang": "pt",       # language your audience reads chat in
+    "obs_chat_lang": "en",       # language your audience reads chat in
     "my_lang": "en",             # language YOU read chat in (overlay + phone)
 }
 

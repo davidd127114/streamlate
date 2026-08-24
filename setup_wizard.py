@@ -130,8 +130,18 @@ def main_gui():
     r = row(tr("wiz_speak"))
     spoken_var = tk.StringVar(
         value=code2name.get(subs_cfg.get("spoken_lang", "en"), LANGS[0][0]))
-    ttk.Combobox(r, textvariable=spoken_var, state="readonly", width=28,
-                 values=[n for n, _ in LANGS]).pack(anchor="w", pady=3)
+    spoken_cb = ttk.Combobox(r, textvariable=spoken_var, state="readonly",
+                             width=28, values=[n for n, _ in LANGS])
+    spoken_cb.pack(anchor="w", pady=3)
+
+    def _audience_defaults(_ev=None):
+        # growth logic: non-English streamer → viewer-facing stuff defaults
+        # to English (the bridge language); English streamer → Portuguese.
+        default = ("English" if dict(LANGS)[spoken_var.get()] != "en"
+                   else "Portuguese (Brazil)")
+        lang_var.set(default)
+        obslang_var.set(default)
+    spoken_cb.bind("<<ComboboxSelected>>", _audience_defaults)
 
     r = row(tr("wiz_caption"))
     lang_var = tk.StringVar(
