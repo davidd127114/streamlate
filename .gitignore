@@ -7,3 +7,5 @@ __pycache__/
 background.*
 .version
 streamlate_link_qr.png
+dist/
+build_tmp/
