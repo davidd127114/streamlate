@@ -218,6 +218,23 @@ def main_gui():
     ttk.Combobox(f2, textvariable=call_lang_var, state="readonly", width=22,
                  values=[n for n, _ in LANGS]).pack(side="left", padx=6)
 
+    r = row(tr("wiz_obschat"), adv)
+    obschat_var = tk.BooleanVar(value=bool(chat_cfg.get("obs_chat_enabled")))
+    tk.Checkbutton(r, text=tr("wiz_obschat_on"), variable=obschat_var, bg=BG,
+                   fg=FG, selectcolor="#26262c", activebackground=BG,
+                   activeforeground=FG,
+                   font=("Segoe UI", 10)).pack(anchor="w")
+    f_oc = tk.Frame(r, bg=BG)
+    f_oc.pack(anchor="w", pady=(2, 0))
+    tk.Label(f_oc, text=tr("wiz_obschat_lang"), bg=BG, fg=FG,
+             font=("Segoe UI", 10)).pack(side="left")
+    obslang_var = tk.StringVar(
+        value=code2name.get(chat_cfg.get("obs_chat_lang", "pt"), LANGS[1][0]))
+    ttk.Combobox(f_oc, textvariable=obslang_var, state="readonly", width=22,
+                 values=[n for n, _ in LANGS]).pack(side="left", padx=6)
+    tk.Label(r, text="OBS: http://localhost:8765/obs  (1000×420)", bg=BG,
+             fg="#9adf9e", font=("Segoe UI", 9)).pack(anchor="w")
+
     r = row(tr("wiz_look"), adv)
     f3 = tk.Frame(r, bg=BG)
     f3.pack(anchor="w", pady=2)
@@ -294,7 +311,9 @@ def main_gui():
             extra_subs["hotwords"] = hot_var.get().strip()
         extra_chat = {"ui_lang": dict(UI_LANGS)[ui_var.get()],
                       "enable_chat": bool(en_chat_var.get()),
-                      "enable_subs": bool(en_subs_var.get())}
+                      "enable_subs": bool(en_subs_var.get()),
+                      "obs_chat_enabled": bool(obschat_var.get()),
+                      "obs_chat_lang": dict(LANGS)[obslang_var.get()]}
         write_configs(ch, lang, mic_idx, plan, url_var.get().strip(),
                       spoken_lang=dict(LANGS)[spoken_var.get()],
                       extra_chat=extra_chat, extra_subs=extra_subs)

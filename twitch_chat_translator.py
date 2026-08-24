@@ -64,6 +64,8 @@ DEFAULTS = {
     "overlay_ghost": True,    # fade near-invisible when the mouse is over it
     "background_dim": 0.35,   # brightness of the custom background image
     "quality": "auto",        # auto | light | tiny | zero — see quality.py
+    "obs_chat_enabled": False,   # translated chat feed for VIEWERS (OBS source)
+    "obs_chat_lang": "pt",       # language your audience reads chat in
 }
 
 OVERLAY_CORNERS = ["+16+16", "-16+16", "-16-16", "+16-16"]
@@ -283,9 +285,47 @@ class TranslateWorker(threading.Thread):
             except Exception as e:  # never die on one bad message
                 log(f"translate worker error: {e}")
                 translation = None
+            tr2 = None
+            if self.cfg.get("obs_chat_enabled"):
+                try:
+                    tr2 = self.viewer_translate(text)
+                except Exception:
+                    tr2 = None
             if self.history is not None:
-                self.history.add(user, display_color(user, color), text, translation)
+                self.history.add(user, display_color(user, color), text,
+                                 translation, tr2)
             self.out_q.put(("chat", user, color, text, translation))
+
+    def viewer_translate(self, text):
+        """Second direction: the whole chat into the AUDIENCE's language,
+        for the on-stream feed. Free engine — fast, zero VRAM."""
+        t = text.strip()
+        if len(t) < 2 or LAUGH_RE.match(t) or URL_RE.match(t):
+            return None
+        lang = self.cfg.get("obs_chat_lang", "pt")
+        key = "v:" + t.lower()
+        if key in self.cache:
+            self.cache.move_to_end(key)
+            return self.cache[key][0]
+        try:
+            url = ("https://clients5.google.com/translate_a/t"
+                   f"?client=dict-chrome-ex&sl=auto&tl={lang}&q="
+                   + urllib.parse.quote(normalize_slang(t)))
+            req = urllib.request.Request(url,
+                                         headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=8) as r:
+                data = json.loads(r.read().decode("utf-8"))
+            entry = data[0] if data else ""
+            tr2, detected = ((entry[0], entry[1] if len(entry) > 1 else "")
+                             if isinstance(entry, list) else (str(entry), ""))
+            if detected == lang or not tr2:
+                tr2 = None
+        except Exception:
+            return None
+        self.cache[key] = (tr2, "")
+        if len(self.cache) > 800:
+            self.cache.popitem(last=False)
+        return tr2
 
     def translate_any(self, text):
         last_err = None
@@ -455,11 +495,12 @@ class ChatHistory:
         self.next_id = 1
         self.viewers = None          # live viewer count, None = offline/unknown
 
-    def add(self, user, color, text, translation):
+    def add(self, user, color, text, translation, tr2=None):
         with self.lock:
             self.items.append({
                 "id": self.next_id, "ts": time.strftime("%H:%M"),
                 "user": user, "color": color, "text": text, "tr": translation,
+                "tr2": tr2,
             })
             self.next_id += 1
 
@@ -557,6 +598,47 @@ tick();
 </body></html>"""
 
 
+OBS_CHAT_HTML = """<!doctype html>
+<html><head><meta charset="utf-8"><title>Streamlate chat</title>
+<style>
+ * { margin:0; padding:0; box-sizing:border-box; }
+ body { background:transparent; overflow:hidden;
+        font-family:'Segoe UI',system-ui,sans-serif; }
+ #feed { position:fixed; left:0; right:0; bottom:0; padding:10px 14px;
+         display:flex; flex-direction:column; justify-content:flex-end; }
+ .m { font-size:26px; line-height:1.35; margin-top:5px; color:#fff;
+      text-shadow:0 2px 6px rgba(0,0,0,.95), 0 0 2px rgba(0,0,0,.9);
+      unicode-bidi:plaintext; animation:in .18s ease-out;
+      overflow-wrap:anywhere; }
+ .u { font-weight:700; }
+ @keyframes in { from { opacity:0; transform:translateY(8px); }
+                 to { opacity:1; transform:none; } }
+</style></head>
+<body><div id="feed"></div>
+<script>
+let last = 0;
+const feed = document.getElementById('feed');
+function esc(s){ const d = document.createElement('span'); d.textContent = s; return d.innerHTML; }
+async function tick(){
+  try {
+    const r = await fetch('/msgs?since=' + last);
+    const j = await r.json();
+    for (const m of j.msgs){
+      const div = document.createElement('div'); div.className = 'm';
+      const body = m.tr2 || m.text;
+      div.innerHTML = '<span class="u" style="color:' + m.color + '">'
+        + esc(m.user) + '</span>: ' + esc(body);
+      feed.appendChild(div);
+    }
+    if (j.msgs.length) last = j.latest;
+    while (feed.children.length > 9) feed.removeChild(feed.firstChild);
+  } catch (e) {}
+  setTimeout(tick, 900);
+}
+tick();
+</script></body></html>"""
+
+
 class PhoneHandler(BaseHTTPRequestHandler):
     history = None   # set via subclass in start_phone_server
     app_cfg = None
@@ -605,6 +687,9 @@ class PhoneHandler(BaseHTTPRequestHandler):
         try:
             if self.path == "/" or self.path.startswith("/index"):
                 self._reply(PHONE_HTML.encode("utf-8"), "text/html; charset=utf-8")
+            elif self.path.startswith("/obs"):
+                self._reply(OBS_CHAT_HTML.encode("utf-8"),
+                            "text/html; charset=utf-8")
             elif self.path.startswith("/bg"):
                 bg = find_background(APP_DIR)
                 if not bg:
@@ -630,6 +715,13 @@ class PhoneHandler(BaseHTTPRequestHandler):
             pass
 
 
+class ExclusiveHTTPServer(ThreadingHTTPServer):
+    # Windows: reuse_address lets two instances silently share one port —
+    # then requests land on a random one. Demand exclusive ownership so a
+    # second instance moves to the next port instead.
+    allow_reuse_address = False
+
+
 def start_phone_server(history, cfg, ui_q=None):
     """Serve the phone page on the LAN. Returns (port, server) or (None, None)."""
     base = int(cfg.get("http_port", 8765))
@@ -637,7 +729,7 @@ def start_phone_server(history, cfg, ui_q=None):
         try:
             handler = type("BoundHandler", (PhoneHandler,),
                            {"history": history, "app_cfg": cfg, "ui_q": ui_q})
-            srv = ThreadingHTTPServer(("0.0.0.0", port), handler)
+            srv = ExclusiveHTTPServer(("0.0.0.0", port), handler)
         except OSError:
             continue
         threading.Thread(target=srv.serve_forever, daemon=True).start()

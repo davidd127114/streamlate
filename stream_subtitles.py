@@ -483,8 +483,11 @@ def main():
         pin_to_efficiency_cores()
     store = SubtitleStore()
 
+    class ExclusiveServer(ThreadingHTTPServer):
+        allow_reuse_address = False   # never share a port with another copy
+
     handler = type("BoundSubs", (SubsHandler,), {"store": store, "cfg": cfg})
-    srv = ThreadingHTTPServer(("127.0.0.1", cfg["port"]), handler)
+    srv = ExclusiveServer(("127.0.0.1", cfg["port"]), handler)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     log(f"OBS captions page: http://localhost:{cfg['port']}")
 

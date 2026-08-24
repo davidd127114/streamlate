@@ -8,6 +8,9 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 STRINGS = {
     "en": {
+        "wiz_obschat": "Translated chat on your stream (for viewers)",
+        "wiz_obschat_on": "Show chat translated on the broadcast (OBS source)",
+        "wiz_obschat_lang": "Viewers read chat in:",
         "starting": "Streamlate — starting",
         "line_chat": "🟣  Chat overlay + phone page",
         "line_subs": "🟢  Subtitles for OBS",
@@ -74,6 +77,9 @@ STRINGS = {
         "wiz_ui_lang": "App language",
     },
     "pt": {
+        "wiz_obschat": "Chat traduzido na sua stream (para os viewers)",
+        "wiz_obschat_on": "Mostrar o chat traduzido na transmissão (fonte OBS)",
+        "wiz_obschat_lang": "Viewers leem o chat em:",
         "starting": "Streamlate — iniciando",
         "line_chat": "🟣  Overlay do chat + página do celular",
         "line_subs": "🟢  Legendas para o OBS",
@@ -140,6 +146,9 @@ STRINGS = {
         "wiz_ui_lang": "Idioma do app",
     },
     "he": {
+        "wiz_obschat": "צ'אט מתורגם בשידור (לצופים)",
+        "wiz_obschat_on": "להציג את הצ'אט מתורגם בשידור (מקור OBS)",
+        "wiz_obschat_lang": "הצופים קוראים את הצ'אט ב:",
         "starting": "Streamlate — מתחיל",
         "line_chat": "🟣  שכבת צ'אט + דף לנייד",
         "line_subs": "🟢  כתוביות ל-OBS",
@@ -206,6 +215,9 @@ STRINGS = {
         "wiz_ui_lang": "שפת האפליקציה",
     },
     "pl": {
+        "wiz_obschat": "Przetłumaczony czat na streamie (dla widzów)",
+        "wiz_obschat_on": "Pokazuj przetłumaczony czat na transmisji (źródło OBS)",
+        "wiz_obschat_lang": "Widzowie czytają czat po:",
         "starting": "Streamlate — uruchamianie",
         "line_chat": "🟣  Nakładka czatu + strona na telefon",
         "line_subs": "🟢  Napisy do OBS",
@@ -271,6 +283,9 @@ STRINGS = {
         "wiz_ui_lang": "Język aplikacji",
     },
     "ja": {
+        "wiz_obschat": "配信画面に翻訳チャット（視聴者向け）",
+        "wiz_obschat_on": "翻訳したチャットを配信に表示（OBSソース）",
+        "wiz_obschat_lang": "視聴者が読む言語:",
         "starting": "Streamlate — 起動中",
         "line_chat": "🟣  チャットオーバーレイ + スマホページ",
         "line_subs": "🟢  OBS用字幕",
@@ -336,6 +351,9 @@ STRINGS = {
         "wiz_ui_lang": "アプリの言語",
     },
     "zh": {
+        "wiz_obschat": "直播画面上的翻译聊天（给观众）",
+        "wiz_obschat_on": "在直播中显示翻译后的聊天（OBS 源）",
+        "wiz_obschat_lang": "观众阅读聊天的语言:",
         "starting": "Streamlate — 启动中",
         "line_chat": "🟣  聊天悬浮窗 + 手机页面",
         "line_subs": "🟢  OBS 字幕",
@@ -401,6 +419,9 @@ STRINGS = {
         "wiz_ui_lang": "应用语言",
     },
     "ko": {
+        "wiz_obschat": "방송 화면에 번역된 채팅 (시청자용)",
+        "wiz_obschat_on": "번역된 채팅을 방송에 표시 (OBS 소스)",
+        "wiz_obschat_lang": "시청자가 읽을 언어:",
         "starting": "Streamlate — 시작 중",
         "line_chat": "🟣  채팅 오버레이 + 휴대폰 페이지",
         "line_subs": "🟢  OBS 자막",
@@ -466,6 +487,9 @@ STRINGS = {
         "wiz_ui_lang": "앱 언어",
     },
     "es": {
+        "wiz_obschat": "Chat traducido en tu stream (para viewers)",
+        "wiz_obschat_on": "Mostrar el chat traducido en la transmisión (fuente OBS)",
+        "wiz_obschat_lang": "Los viewers leen el chat en:",
         "starting": "Streamlate — iniciando",
         "line_chat": "🟣  Overlay del chat + página del celular",
         "line_subs": "🟢  Subtítulos para OBS",
