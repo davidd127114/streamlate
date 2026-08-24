@@ -10,10 +10,12 @@ import subprocess
 CREATE_NO_WINDOW = 0x08000000
 
 # (min VRAM GB, ollama model, approx download, one-line description)
+# Conservative on purpose: the GPU is SHARED WITH A GAME. Below 12 GB the
+# auto pick is the free engine (zero VRAM) — enthusiasts dial up in the
+# tray, and their choice sticks.
 TIERS = [
     (20, "qwen3.8:27b", "17 GB", "best quality — natural gamer speech"),
-    (11, "gemma3:12b",  "8 GB",  "great quality"),
-    (6,  "gemma3:4b",   "3 GB",  "good quality"),
+    (12, "gemma3:4b",   "3 GB",  "good quality, game-safe"),
 ]
 
 
@@ -70,14 +72,14 @@ def pick():
     plan = {
         "vram_gb": round(vram, 1),
         "ollama_installed": has_ollama,
-        "whisper_model": "small.en" if vram >= 2 else "base.en",
-        "use_gpu": vram >= 2,
+        "whisper_model": "small.en" if vram >= 12 else "base.en",
+        "use_gpu": vram >= 12,   # below that, leave the whole GPU to the game
         "translator": "google",
         "ollama_model": "",
         "download": "",
-        "note": "free Google engine — works on any PC",
+        "note": "free web engine — zero GPU, never causes game lag",
     }
-    if vram >= 6:
+    if vram >= 12:
         for min_gb, model, dl, note in TIERS:
             if vram >= min_gb:
                 plan.update({"translator": "ollama", "ollama_model": model,

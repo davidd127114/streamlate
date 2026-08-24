@@ -54,13 +54,18 @@ def read_config(name):
 
 def write_configs(channel, target_lang, mic_device, plan, engine_url,
                   spoken_lang="en", extra_chat=None, extra_subs=None):
+    # A quality tier the user picked by hand is sacred: never let a
+    # settings visit re-run auto-detect over it.
+    keep_engine = read_config("config.json").get("quality",
+                                                 "auto") not in ("", "auto")
     chat = {
         "channel": channel,
         "platform": "auto",
-        "translator": plan["translator"],
-        "ollama_model": plan["ollama_model"] or "gemma3:4b",
         "engine_url": engine_url,
     }
+    if not keep_engine:
+        chat.update({"translator": plan["translator"],
+                     "ollama_model": plan["ollama_model"] or "gemma3:4b"})
     chat.update(extra_chat or {})
     whisper_model = plan["whisper_model"]
     if spoken_lang != "en" and whisper_model.endswith(".en"):
@@ -71,12 +76,13 @@ def write_configs(channel, target_lang, mic_device, plan, engine_url,
         "spoken_lang": spoken_lang,
         "target_lang": target_lang,
         "mic_device": mic_device,
-        "translator": plan["translator"],
-        "ollama_model": plan["ollama_model"] or "gemma3:4b",
         "engine_url": engine_url,
-        "model": whisper_model,
-        "use_gpu": plan["use_gpu"],
     }
+    if not keep_engine:
+        subs.update({"translator": plan["translator"],
+                     "ollama_model": plan["ollama_model"] or "gemma3:4b",
+                     "model": whisper_model,
+                     "use_gpu": plan["use_gpu"]})
     subs.update(extra_subs or {})
     _merge_into(os.path.join(APP_DIR, "config.json"), chat)
     _merge_into(os.path.join(APP_DIR, "subs_config.json"), subs)
