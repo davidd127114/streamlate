@@ -84,6 +84,12 @@ DEFAULTS = {
     # vocabulary whisper should be biased to hear correctly (add your own terms)
     "hotwords": "GG, clutch, elo, noob, buff, nerf, lag, spawn, rush, "
                 "tryhard, ranked, respawn, loadout, Twitch, clip, chat",
+    # voice-chat translation (Discord etc.) — hears what your PC plays
+    "call_translate": False,
+    "call_model": "small",       # multilingual whisper for teammates
+    "call_target": "en",         # language YOU read the bubbles in
+    "call_show_english": False,
+    "call_silence_rms": 0.003,
 }
 
 
@@ -176,6 +182,12 @@ _ollama_state = {"warm": False, "cooldown_until": 0.0}
 
 def _ollama_system(target, source="en"):
     lang = LANG_NAMES.get(target, target)
+    if source in (None, "", "auto"):
+        return (f"You translate live gaming voice-chat lines into {lang}. "
+                "The speakers are gamers talking casually. The text comes "
+                "from speech recognition and may contain small errors - "
+                "translate the most likely intended meaning naturally. "
+                "Reply with ONLY the translation.")
     src = LANG_NAMES.get(source, source)
     base = (f"You translate live stream captions from {src} to {lang}. "
             f"The streamer is a gamer talking casually to viewers. Write natural, "
@@ -222,6 +234,39 @@ def warm_ollama(cfg):
         log(f"ollama {cfg['ollama_model']} warm — best-quality translation active")
     except Exception as e:
         log(f"ollama warmup failed ({e}) — staying on google")
+
+
+def call_translate(text, target, cfg):
+    """Auto-source translation for voice-chat lines (language unknown)."""
+    if cfg.get("translator") == "ollama" and _ollama_state["warm"]:
+        if time.time() >= _ollama_state["cooldown_until"]:
+            try:
+                return _ollama(text, target, cfg["ollama_model"],
+                               source="auto")
+            except Exception as e:
+                log(f"call ollama failed ({e}) — google fallback")
+                _ollama_state["cooldown_until"] = time.time() + 60
+    try:
+        return _clients5(text, "auto", target)
+    except Exception:
+        return _gtx(text, "auto", target)
+
+
+CALL = {"listener": None}
+
+
+def start_call(cfg):
+    from call_audio import CallListener
+    if CALL["listener"]:
+        return
+    CALL["listener"] = CallListener(cfg, call_translate, log)
+    CALL["listener"].start()
+
+
+def stop_call():
+    if CALL["listener"]:
+        CALL["listener"].stop()
+        CALL["listener"] = None
 
 
 def translate(text, target, cfg=None):
@@ -368,12 +413,27 @@ def run_tray(cfg):
         icon.stop()
 
     from i18n import tr
+
+    def toggle_call(icon, item):
+        cfg["call_translate"] = not cfg.get("call_translate")
+        try:
+            with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+                json.dump(cfg, f, indent=2)
+        except OSError:
+            pass
+        if cfg["call_translate"]:
+            start_call(cfg)
+        else:
+            stop_call()
+
     icon = pystray.Icon(
         "streamlate_subs", img,
         f"Streamlate → {cfg['target_lang'].upper()} · OBS: {url}",
         menu=pystray.Menu(
             pystray.MenuItem(f"{tr('obs_source')}: {url}", None, enabled=False),
             pystray.MenuItem(tr("preview"), open_page),
+            pystray.MenuItem(tr("calltr"), toggle_call,
+                             checked=lambda item: bool(cfg.get("call_translate"))),
             pystray.MenuItem(tr("exit"), quit_app),
         ))
     icon.run()
@@ -447,6 +507,8 @@ def main():
         log(f"whisper '{cfg['model']}' forced onto CPU (int8, "
             f"{cfg['cpu_threads']} threads)")
     listener.start()
+    if cfg.get("call_translate"):
+        start_call(cfg)
     run_tray(cfg)
 
 

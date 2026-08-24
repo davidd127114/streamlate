@@ -57,6 +57,21 @@ field, and your PC does almost nothing. ~$0.25/hr buys you the best tier.
   `phone_qr.png`.
 - **`Streamlate OFF`** (gray icon): stops everything.
 
+## Discord / voice-chat translation
+
+Teammates speaking another language in Discord (or in-game VC)? Right-click
+the **green** tray icon → **Voice-chat translation** — no drivers, no
+virtual cables, nothing to configure. Streamlate listens to what your PC is
+playing, and translated 🎧 bubbles appear in your chat overlay and phone
+page whenever someone speaks a foreign language.
+
+One honest caveat: it hears *everything* your PC plays, so music with vocals
+can produce stray bubbles (game sound effects are ignored fine). If you want
+surgical isolation, the classic streamer trick works: install the free
+[VB-Cable](https://vb-audio.com/Cable/), set Discord's output device to
+*CABLE Input*, enable "listen to this device" on *CABLE Output* so you still
+hear the call — optional, for purists.
+
 ## Make it yours
 
 Right-click the purple tray icon → **Change background image…** and pick any

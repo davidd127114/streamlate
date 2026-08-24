@@ -550,10 +550,38 @@ tick();
 class PhoneHandler(BaseHTTPRequestHandler):
     history = None   # set via subclass in start_phone_server
     app_cfg = None
+    ui_q = None      # when set, injected messages also reach the overlay
     protocol_version = "HTTP/1.1"   # keep-alive: one connection per client
 
     def log_message(self, *args):
         pass
+
+    def do_POST(self):
+        """Localhost-only /inject: voice-chat translator pushes bubbles here."""
+        try:
+            if (self.client_address[0] not in ("127.0.0.1", "::1")
+                    or not self.path.startswith("/inject")):
+                self.send_error(403)
+                return
+            n = int(self.headers.get("Content-Length", 0))
+            if not 0 < n <= 8192:
+                self.send_error(400)
+                return
+            d = json.loads(self.rfile.read(n))
+            user = str(d.get("user", "🎧"))[:40]
+            color = str(d.get("color", "#7fd4ff"))[:9]
+            text = str(d.get("text", ""))[:500]
+            tr_ = d.get("tr")
+            tr_ = str(tr_)[:500] if tr_ else None
+            if not text.strip():
+                self.send_error(400)
+                return
+            self.history.add(user, color, text, tr_)
+            if self.ui_q is not None:
+                self.ui_q.put(("chat", user, color, text, tr_))
+            self._reply(b'{"ok":true}', "application/json")
+        except (BrokenPipeError, ConnectionError, ValueError):
+            pass
 
     def _reply(self, body, ctype):
         self.send_response(200)
@@ -592,13 +620,13 @@ class PhoneHandler(BaseHTTPRequestHandler):
             pass
 
 
-def start_phone_server(history, cfg):
+def start_phone_server(history, cfg, ui_q=None):
     """Serve the phone page on the LAN. Returns (port, server) or (None, None)."""
     base = int(cfg.get("http_port", 8765))
     for port in range(base, base + 6):
         try:
             handler = type("BoundHandler", (PhoneHandler,),
-                           {"history": history, "app_cfg": cfg})
+                           {"history": history, "app_cfg": cfg, "ui_q": ui_q})
             srv = ThreadingHTTPServer(("0.0.0.0", port), handler)
         except OSError:
             continue
@@ -767,7 +795,8 @@ class App(tk.Tk):
         self.worker = TranslateWorker(self.raw_q, self.ui_q, self.cfg, self.history)
         self.worker.start()
 
-        port, self.http_srv = start_phone_server(self.history, self.cfg)
+        port, self.http_srv = start_phone_server(self.history, self.cfg,
+                                                 self.ui_q)
         self.phone_url = f"http://{lan_ip()}:{port}" if port else ""
         start_viewer_poller(self.history, self.cfg)
         threading.Thread(target=warm_chat_ollama, args=(self.cfg,),
