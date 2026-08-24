@@ -54,10 +54,12 @@ def read_config(name):
 
 def write_configs(channel, target_lang, mic_device, plan, engine_url,
                   spoken_lang="en", extra_chat=None, extra_subs=None):
-    # A quality tier the user picked by hand is sacred: never let a
-    # settings visit re-run auto-detect over it.
-    keep_engine = read_config("config.json").get("quality",
-                                                 "auto") not in ("", "auto")
+    # The engine is decided ONCE (first run) and then only ever changed by
+    # the user via the quality dial. A settings visit never re-detects.
+    _cur = read_config("config.json")
+    keep_engine = (_cur.get("quality", "auto") not in ("", "auto")
+                   or bool(_cur.get("ollama_model"))
+                   or bool(_cur.get("translator")))
     chat = {
         "channel": channel,
         "platform": "auto",

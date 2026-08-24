@@ -774,7 +774,11 @@ def main():
     CALL["cb"] = call_caption
     if cfg.get("call_translate"):
         start_call(cfg, call_caption)
-    run_tray(cfg)
+    if "--tray" in sys.argv:
+        run_tray(cfg)         # standalone mode keeps its own green icon
+    else:
+        while True:           # merged mode: the purple icon runs the show
+            time.sleep(3600)
 
 
 if __name__ == "__main__":

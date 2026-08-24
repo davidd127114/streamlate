@@ -1225,7 +1225,7 @@ class App(tk.Tk):
             ensure_speaker(self.cfg)
         elif cmd == "exit":
             self.on_close()
-            os._exit(0)
+            stop_everything()
 
     def _overlay_tray(self):
         try:
@@ -1266,10 +1266,19 @@ class App(tk.Tk):
                              checked=lambda item: bool(self.cfg.get("overlay_ghost", True))),
             pystray.MenuItem(tr("tts"), put("tts"),
                              checked=lambda item: bool(self.cfg.get("tts_enabled"))),
+            pystray.Menu.SEPARATOR,
+            pystray.MenuItem(tr("preview"),
+                             lambda icon, item: __import__("webbrowser")
+                             .open("http://localhost:8788")),
+            pystray.MenuItem(tr("calltr"),
+                             lambda icon, item: toggle_subs_call(),
+                             checked=lambda item: subs_call_enabled()),
+            pystray.Menu.SEPARATOR,
             pystray.MenuItem(tr("q_menu"), quality_submenu(self.cfg, pystray)),
             pystray.MenuItem(tr("settings"),
                              lambda icon, item: open_settings_and_restart()),
-            pystray.MenuItem(tr("exit"), put("exit")),
+            pystray.MenuItem(tr("exit"),
+                             lambda icon, item: stop_everything()),
         )
         self._tray_icon = pystray.Icon(
             "streamlate_overlay", _tray_image(),
@@ -1578,6 +1587,59 @@ def quality_submenu(cfg, pystray):
     )
 
 
+def _subs_cfg_path():
+    return os.path.join(APP_DIR, "subs_config.json")
+
+
+def subs_call_enabled():
+    try:
+        with open(_subs_cfg_path(), encoding="utf-8-sig") as f:
+            return bool(json.load(f).get("call_translate"))
+    except (OSError, ValueError):
+        return False
+
+
+def toggle_subs_call():
+    """Flip voice-chat translation in the captions service and restart it."""
+    import subprocess
+    try:
+        with open(_subs_cfg_path(), encoding="utf-8-sig") as f:
+            c = json.load(f)
+    except (OSError, ValueError):
+        c = {}
+    c["call_translate"] = not c.get("call_translate")
+    try:
+        with open(_subs_cfg_path(), "w", encoding="utf-8") as f:
+            json.dump(c, f, indent=2)
+    except OSError:
+        return
+    try:
+        subprocess.run(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
+             "-File", os.path.join(APP_DIR, "_stop.ps1"),
+             "-Pattern", "stream_subtitles"],
+            creationflags=0x08000000, timeout=30)
+        subprocess.Popen(
+            [sys.executable, os.path.join(APP_DIR, "stream_subtitles.py")],
+            cwd=APP_DIR, creationflags=0x08000000)
+    except Exception as e:
+        log(f"subs restart failed: {e}")
+
+
+def stop_everything():
+    """One Exit for the whole app: chat, phone page, captions — all of it."""
+    import subprocess
+    try:
+        subprocess.Popen(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
+             "-File", os.path.join(APP_DIR, "_stop.ps1")],
+            creationflags=0x08000000)
+    except Exception:
+        pass
+    time.sleep(1.5)
+    os._exit(0)
+
+
 def open_settings_and_restart():
     """Re-run the setup wizard, then relaunch the whole stack so every
     change (mic, language, channel) takes effect. Wizard merges configs,
@@ -1635,10 +1697,19 @@ def _run_tray(cfg, url):
             pystray.MenuItem(f"#{cfg['channel']} — {url}", None, enabled=False),
             pystray.MenuItem(tr("open_phone"), open_page, default=True),
             pystray.MenuItem(tr("show_qr"), show_qr),
+            pystray.Menu.SEPARATOR,
+            pystray.MenuItem(tr("preview"),
+                             lambda icon, item: __import__("webbrowser")
+                             .open("http://localhost:8788")),
+            pystray.MenuItem(tr("calltr"),
+                             lambda icon, item: toggle_subs_call(),
+                             checked=lambda item: subs_call_enabled()),
+            pystray.Menu.SEPARATOR,
             pystray.MenuItem(tr("q_menu"), quality_submenu(cfg, pystray)),
             pystray.MenuItem(tr("settings"),
                              lambda icon, item: open_settings_and_restart()),
-            pystray.MenuItem(tr("exit"), quit_app),
+            pystray.MenuItem(tr("exit"),
+                             lambda icon, item: stop_everything()),
         ),
     )
     icon.run()

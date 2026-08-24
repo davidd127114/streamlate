@@ -48,7 +48,15 @@ def unload_models(engine_url, keep=""):
 
 def set_quality(tier, app_dir, engine_url, log=print):
     """Write the tier to both configs, free VRAM, fetch the model if new,
-    and relaunch the stack. Called from the tray menus."""
+    and relaunch the stack. Called from the tray menus. Picking 'auto' is
+    the ONLY thing that ever re-runs hardware detection."""
+    plan = None
+    if tier == "auto":
+        try:
+            import hardware
+            plan = hardware.pick()
+        except Exception:
+            plan = None
     for name in ("config.json", "subs_config.json"):
         path = os.path.join(app_dir, name)
         try:
@@ -58,6 +66,15 @@ def set_quality(tier, app_dir, engine_url, log=print):
             c = {}
         c["quality"] = tier
         c.pop("game_mode", None)
+        if plan is not None:   # explicit re-pick of Best (auto)
+            c["translator"] = plan["translator"]
+            c["ollama_model"] = plan["ollama_model"] or "gemma3:4b"
+            if name == "subs_config.json":
+                c["use_gpu"] = plan["use_gpu"]
+                m = plan["whisper_model"]
+                if c.get("spoken_lang", "en") != "en" and m.endswith(".en"):
+                    m = m[:-3]
+                c["model"] = m
         try:
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(c, f, indent=2)
