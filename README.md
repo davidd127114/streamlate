@@ -8,7 +8,9 @@ Free, local, live translation for streamers.
   your voice.
 - **Your chat → English, for you.** Every non-English chat message translated
   on a click-through in-game overlay and on a phone page you can read from
-  your couch. Viewer count included.
+  your couch. Works with **Twitch, YouTube and Kick** chat — just give it
+  your channel name, @handle, or kick.com URL. (Kick support is experimental;
+  viewer count currently Twitch-only.)
 - **No accounts, no API keys, no cloud required.** Everything runs on your PC.
   Anonymous read-only Twitch chat connection — it never touches your account.
 

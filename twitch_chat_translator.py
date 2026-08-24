@@ -44,6 +44,7 @@ LOG_PATH = os.path.join(APP_DIR, "translator.log")
 
 DEFAULTS = {
     "channel": "",
+    "platform": "auto",   # auto | twitch | youtube | kick (auto sniffs the channel)
     "font_size": 12,
     "opacity": 0.97,
     "topmost": True,
@@ -636,14 +637,31 @@ def fetch_viewers(channel):
 
 def start_viewer_poller(history, cfg):
     def loop():
+        from chat_sources import detect_platform
         while True:
             try:
-                history.viewers = fetch_viewers(cfg["channel"])
+                if detect_platform(cfg.get("channel", ""),
+                                   cfg.get("platform", "auto")) == "twitch":
+                    history.viewers = fetch_viewers(cfg["channel"])
+                else:
+                    history.viewers = None   # viewer count is Twitch-only for now
             except Exception as e:
                 log(f"viewer count failed: {e}")
                 history.viewers = None
             time.sleep(60)
     threading.Thread(target=loop, daemon=True).start()
+
+
+def make_reader(cfg, raw_q, ui_q):
+    """Chat reader for whichever platform the channel points at."""
+    from chat_sources import detect_platform, YouTubeReader, KickReader
+    platform = detect_platform(cfg.get("channel", ""),
+                               cfg.get("platform", "auto"))
+    if platform == "youtube":
+        return YouTubeReader(cfg["channel"], raw_q, ui_q, log)
+    if platform == "kick":
+        return KickReader(cfg["channel"], raw_q, ui_q, log)
+    return IrcReader(cfg["channel"], raw_q, ui_q)
 
 
 # --------------------------------------------------------------------------
@@ -1083,12 +1101,18 @@ class App(tk.Tk):
     def start_irc(self, channel):
         if self.irc:
             self.irc.stop()
-        channel = channel.lower().lstrip("#@ ")
+        from chat_sources import detect_platform, display_name
+        platform = detect_platform(channel, self.cfg.get("platform", "auto"))
+        if platform == "twitch":
+            channel = channel.strip().lower().lstrip("#@ ")
+        else:
+            channel = channel.strip()
         if self.cfg["channel"] and channel != self.cfg["channel"]:
             self.history.clear()
         self.cfg["channel"] = channel
-        self.title(f"Streamlate — #{channel}")
-        self.irc = IrcReader(channel, self.raw_q, self.ui_q)
+        prefix = "#" if platform == "twitch" else ""
+        self.title(f"Streamlate — {prefix}{display_name(channel)}")
+        self.irc = make_reader(self.cfg, self.raw_q, self.ui_q)
         self.irc.start()
 
     def on_close(self):
@@ -1211,7 +1235,7 @@ def run_headless(cfg):
         qrcode.make(url).save(os.path.join(APP_DIR, "phone_qr.png"))
     except Exception:
         pass
-    IrcReader(cfg["channel"], raw_q, ui_q).start()
+    make_reader(cfg, raw_q, ui_q).start()
     threading.Thread(target=_drain_ui_queue, args=(ui_q,), daemon=True).start()
     _run_tray(cfg, url)
 
@@ -1228,7 +1252,7 @@ def main():
     overlay = any(a.lower() == "--overlay" for a in args)
     channels = [a for a in args if not a.startswith("-")]
     if channels:
-        cfg["channel"] = channels[0].strip().lower().lstrip("#@")
+        cfg["channel"] = channels[0].strip()
     if headless:
         save_config(cfg)
         run_headless(cfg)

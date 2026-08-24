@@ -32,6 +32,7 @@ def _merge_into(path, new_keys):
 def write_configs(channel, target_lang, mic_device, plan, engine_url):
     chat = {
         "channel": channel,
+        "platform": "auto",
         "translator": plan["translator"],
         "ollama_model": plan["ollama_model"] or "gemma3:4b",
         "engine_url": engine_url,
@@ -84,9 +85,9 @@ def main_gui():
     tk.Label(root, text="Streamlate", bg=BG, fg=ACC,
              font=("Segoe UI", 16, "bold"), pady=10).pack()
 
-    r = row("Your Twitch channel")
+    r = row("Your channel  (Twitch name, YouTube @handle, or kick.com URL)")
     channel_var = tk.StringVar()
-    tk.Entry(r, textvariable=channel_var, width=30,
+    tk.Entry(r, textvariable=channel_var, width=42,
              font=("Segoe UI", 11)).pack(anchor="w", pady=3)
 
     r = row("Subtitle your voice into…")
@@ -141,8 +142,10 @@ def main_gui():
         if mic.startswith("["):
             mic_idx = int(mic.split("]")[0][1:])
         lang = dict(LANGS)[lang_var.get()]
-        write_configs(channel_var.get().strip().lstrip("#@").lower(), lang,
-                      mic_idx, plan, url_var.get().strip())
+        ch = channel_var.get().strip()
+        if not (ch.startswith("@") or "/" in ch):   # plain Twitch name
+            ch = ch.lstrip("#").lower()
+        write_configs(ch, lang, mic_idx, plan, url_var.get().strip())
         root.destroy()
 
     def save():
