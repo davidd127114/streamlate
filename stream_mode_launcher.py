@@ -59,6 +59,110 @@ def make_share_qr():
         pass
 
 
+def control_panel(en_chat, en_subs, updated):
+    """The window that opens when you click Streamlate: live status of both
+    halves + the buttons people actually need. Closing it changes nothing —
+    Streamlate keeps running in the tray."""
+    import socket
+    import subprocess
+    import webbrowser
+    from i18n import tr
+
+    BG, FG, ACC, DIM = "#141417", "#e8e8ee", "#a970ff", "#8a8a92"
+    root = tk.Tk()
+    root.title("Streamlate Control")
+    root.configure(bg=BG)
+    root.resizable(False, False)
+    root.attributes("-topmost", True)
+    root.after(2500, lambda: root.attributes("-topmost", False))
+    try:
+        root.iconbitmap(os.path.join(APP_DIR, "stream_on.ico"))
+    except tk.TclError:
+        pass
+
+    tk.Label(root, text="Streamlate", bg=BG, fg=ACC,
+             font=("Segoe UI", 17, "bold")).pack(pady=(14, 2))
+    if updated:
+        tk.Label(root, text=tr("updated"), bg=BG, fg="#9adf9e",
+                 font=("Segoe UI", 9)).pack()
+
+    rows = tk.Frame(root, bg=BG)
+    rows.pack(pady=8)
+    status_lbls = {}
+    for key, name, port, enabled in (("chat", tr("p_chat"), 8765, en_chat),
+                                     ("subs", tr("p_subs"), 8788, en_subs)):
+        f = tk.Frame(rows, bg=BG)
+        f.pack(fill="x", padx=26, pady=3)
+        tk.Label(f, text=name, bg=BG, fg=FG, width=16, anchor="w",
+                 font=("Segoe UI", 11)).pack(side="left")
+        lbl = tk.Label(f, text="…", bg=BG, fg=DIM, font=("Segoe UI", 11))
+        lbl.pack(side="left")
+        status_lbls[key] = (lbl, port, enabled)
+
+    def alive(port):
+        s = socket.socket()
+        s.settimeout(0.3)
+        try:
+            s.connect(("127.0.0.1", port))
+            s.close()
+            return True
+        except OSError:
+            return False
+
+    def refresh():
+        for lbl, port, enabled in status_lbls.values():
+            if not enabled:
+                lbl.config(text="⚪ " + tr("p_off"), fg=DIM)
+            elif alive(port):
+                lbl.config(text="🟢 " + tr("p_on"), fg="#9adf9e")
+            else:
+                lbl.config(text="🕓 " + tr("p_starting"), fg="#e6c07b")
+        root.after(2000, refresh)
+
+    btns = tk.Frame(root, bg=BG)
+    btns.pack(pady=6)
+
+    def mkbtn(col, text, cmd, color="#26262c"):
+        tk.Button(btns, text=text, command=cmd, bg=color, fg=FG, bd=0,
+                  font=("Segoe UI", 10), padx=14, pady=7,
+                  activebackground="#3a3a44",
+                  activeforeground=FG).grid(row=0, column=col, padx=4)
+
+    mkbtn(0, tr("p_phone"), lambda: webbrowser.open("http://localhost:8765"))
+
+    def show_qr():
+        try:
+            os.startfile(os.path.join(APP_DIR, "phone_qr.png"))
+        except OSError:
+            pass
+    mkbtn(1, tr("p_qr"), show_qr)
+
+    def open_settings():
+        root.destroy()
+        subprocess.run([sys.executable,
+                        os.path.join(APP_DIR, "setup_wizard.py")], cwd=APP_DIR)
+        subprocess.Popen([sys.executable,
+                          os.path.join(APP_DIR, "stream_mode_launcher.py")],
+                         cwd=APP_DIR)
+    mkbtn(2, tr("p_settings"), open_settings)
+
+    def stop_all():
+        try:
+            subprocess.run(
+                ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
+                 "-File", os.path.join(APP_DIR, "_stop.ps1")],
+                creationflags=CREATE_NO_WINDOW, timeout=30)
+        except Exception:
+            pass
+        root.destroy()
+    mkbtn(3, tr("p_stop"), stop_all, color="#5a2a2a")
+
+    tk.Label(root, text=tr("p_hint"), bg=BG, fg=DIM,
+             font=("Segoe UI", 8), wraplength=430).pack(pady=(6, 12))
+    refresh()
+    root.mainloop()
+
+
 def main():
     make_share_qr()
     updated = False
@@ -98,16 +202,7 @@ def main():
         subprocess.Popen(
             [pyw, os.path.join(APP_DIR, "stream_subtitles.py")],
             cwd=APP_DIR, creationflags=CREATE_NO_WINDOW)
-    from i18n import tr
-    lines = [tr("starting")]
-    if en_chat:
-        lines.append(tr("line_chat"))
-    if en_subs:
-        lines.append(tr("line_subs"))
-    lines.append(tr("line_obs"))
-    if updated:
-        lines.append(tr("updated"))
-    splash(lines)
+    control_panel(en_chat, en_subs, updated)
 
 
 if __name__ == "__main__":
