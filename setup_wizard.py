@@ -152,6 +152,16 @@ def main_gui():
     ttk.Combobox(r, textvariable=mic_var, state="readonly", width=48,
                  values=[mic_default] + mics).pack(anchor="w", pady=3)
 
+    r = row("")
+    en_chat_var = tk.BooleanVar(value=chat_cfg.get("enable_chat", True))
+    en_subs_var = tk.BooleanVar(value=chat_cfg.get("enable_subs", True))
+    for var, key in ((en_chat_var, "wiz_enable_chat"),
+                     (en_subs_var, "wiz_enable_subs")):
+        tk.Checkbutton(r, text=tr(key), variable=var, bg=BG, fg=FG,
+                       selectcolor="#26262c", activebackground=BG,
+                       activeforeground=FG,
+                       font=("Segoe UI", 10)).pack(anchor="w")
+
     r = row(tr("wiz_engine"))
     if plan["translator"] == "ollama":
         engine_txt = (f"GPU: {plan['vram_gb']} GB → {plan['ollama_model']} "
@@ -280,7 +290,9 @@ def main_gui():
         }
         if hot_var.get().strip():
             extra_subs["hotwords"] = hot_var.get().strip()
-        extra_chat = {"ui_lang": dict(UI_LANGS)[ui_var.get()]}
+        extra_chat = {"ui_lang": dict(UI_LANGS)[ui_var.get()],
+                      "enable_chat": bool(en_chat_var.get()),
+                      "enable_subs": bool(en_subs_var.get())}
         write_configs(ch, lang, mic_idx, plan, url_var.get().strip(),
                       spoken_lang=dict(LANGS)[spoken_var.get()],
                       extra_chat=extra_chat, extra_subs=extra_subs)

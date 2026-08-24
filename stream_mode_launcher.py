@@ -65,15 +65,32 @@ def main():
             creationflags=CREATE_NO_WINDOW, timeout=30)
     except Exception:
         pass
+    import json
+    try:
+        with open(os.path.join(APP_DIR, "config.json"),
+                  encoding="utf-8-sig") as f:
+            c = json.load(f)
+    except (OSError, ValueError):
+        c = {}
+    en_chat = c.get("enable_chat", True)
+    en_subs = c.get("enable_subs", True)
     pyw = sys.executable
-    subprocess.Popen(
-        [pyw, os.path.join(APP_DIR, "twitch_chat_translator.py"), "--overlay"],
-        cwd=APP_DIR, creationflags=CREATE_NO_WINDOW)
-    subprocess.Popen(
-        [pyw, os.path.join(APP_DIR, "stream_subtitles.py")],
-        cwd=APP_DIR, creationflags=CREATE_NO_WINDOW)
+    if en_chat:
+        subprocess.Popen(
+            [pyw, os.path.join(APP_DIR, "twitch_chat_translator.py"),
+             "--overlay"],
+            cwd=APP_DIR, creationflags=CREATE_NO_WINDOW)
+    if en_subs:
+        subprocess.Popen(
+            [pyw, os.path.join(APP_DIR, "stream_subtitles.py")],
+            cwd=APP_DIR, creationflags=CREATE_NO_WINDOW)
     from i18n import tr
-    lines = [tr("starting"), tr("line_chat"), tr("line_subs"), tr("line_obs")]
+    lines = [tr("starting")]
+    if en_chat:
+        lines.append(tr("line_chat"))
+    if en_subs:
+        lines.append(tr("line_subs"))
+    lines.append(tr("line_obs"))
     if updated:
         lines.append(tr("updated"))
     splash(lines)
