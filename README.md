@@ -36,13 +36,21 @@ Every tier works — bigger hardware just sounds more natural.
 (RunPod, Vast.ai…), put its URL in the setup wizard's "Remote engine URL"
 field, and your PC does almost nothing. ~$0.25/hr buys you the best tier.
 
-## Install (Windows) — one file does everything
+## Install (Windows) — one file, one double-click
 
-1. Download this folder (green **Code → Download ZIP** button, unzip anywhere).
-2. Double-click **`install.bat`** once. It automatically installs Python and
-   the Ollama AI engine if you don't have them (silent, no clicking through
-   installers), sets up the app, puts the icons on your desktop, and opens
-   the setup wizard — your channel, your language, your mic, done.
+### ⬇️ [Download StreamlateSetup.exe](https://github.com/davidd127114/streamlate/releases/latest/download/StreamlateSetup.exe)
+
+Run it. That's the whole install: it fetches everything (Python, the Ollama
+AI engine, the app), puts the **Streamlate** icon on your desktop, and opens
+the setup wizard — your channel, your language, your mic, done.
+*(Windows SmartScreen may warn because the file is new — More info → Run
+anyway.)*
+
+<details><summary>Prefer installing from source?</summary>
+
+Download this repo as ZIP (green **Code** button), unzip anywhere, and
+double-click `install.bat` — same result.
+</details>
 
 ## Use
 
