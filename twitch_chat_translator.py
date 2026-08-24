@@ -709,12 +709,20 @@ async function tick(){
     const r = await fetch('/msgs?since=' + last);
     const j = await r.json();
     for (const m of j.msgs){
+      const isMic = m.user.startsWith('🎤');
       const div = document.createElement('div');
-      div.className = m.user.startsWith('🎤') ? 'm mic' : 'm';
+      div.className = isMic ? 'm mic' : 'm';
+      div.dataset.user = m.user;
       const body = m.tr2 || m.text;
       div.innerHTML = '<span class="u" style="color:' + m.color + '">'
         + esc(m.user) + '</span>: ' + esc(body);
-      feed.appendChild(div);
+      const lastEl = feed.lastElementChild;
+      if (isMic && lastEl && lastEl.classList.contains('mic')
+          && lastEl.dataset.user === m.user){
+        feed.replaceChild(div, lastEl);   // keep talking = one live bubble
+      } else {
+        feed.appendChild(div);
+      }
     }
     if (j.msgs.length) last = j.latest;
     while (feed.children.length > 9) feed.removeChild(feed.firstChild);
