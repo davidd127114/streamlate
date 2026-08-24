@@ -67,7 +67,24 @@ DEFAULTS = {
     "obs_chat_enabled": False,   # translated chat feed for VIEWERS (OBS source)
     "obs_chat_lang": "en",       # language your audience reads chat in
     "my_lang": "en",             # language YOU read chat in (overlay + phone)
+    "tts_enabled": False,        # read translated chat aloud
+    "tts_volume": 0.9,
 }
+
+SPEAKER = {"obj": None}
+
+
+def ensure_speaker(cfg):
+    if cfg.get("tts_enabled") and SPEAKER["obj"] is None:
+        try:
+            from tts_speak import ChatSpeaker
+            SPEAKER["obj"] = ChatSpeaker(cfg, log)
+            SPEAKER["obj"].start()
+        except Exception as e:
+            log(f"tts start failed: {e}")
+    elif not cfg.get("tts_enabled") and SPEAKER["obj"] is not None:
+        SPEAKER["obj"].stop()
+        SPEAKER["obj"] = None
 
 OVERLAY_CORNERS = ["+16+16", "-16+16", "-16-16", "+16-16"]
 
@@ -339,6 +356,11 @@ class TranslateWorker(threading.Thread):
             if self.history is not None:
                 self.history.add(user, display_color(user, color), text,
                                  translation, tr2)
+            if self.cfg.get("tts_enabled") and SPEAKER["obj"] is not None:
+                spoken = translation or (
+                    text if not LAUGH_RE.match(text.strip()) else None)
+                if spoken:
+                    SPEAKER["obj"].say(user, spoken)
             self.out_q.put(("chat", user, color, text, translation))
 
     def viewer_translate(self, text):
@@ -556,12 +578,12 @@ class ChatHistory:
         self.next_id = 1
         self.viewers = None          # live viewer count, None = offline/unknown
 
-    def add(self, user, color, text, translation, tr2=None):
+    def add(self, user, color, text, translation, tr2=None, obs_only=False):
         with self.lock:
             self.items.append({
                 "id": self.next_id, "ts": time.strftime("%H:%M"),
                 "user": user, "color": color, "text": text, "tr": translation,
-                "tr2": tr2,
+                "tr2": tr2, "obs_only": obs_only,
             })
             self.next_id += 1
 
@@ -628,7 +650,7 @@ async function tick(){
       + (j.viewers != null ? '  ·  👁 ' + j.viewers : '');
     if (j.msgs.length){
       const stick = atBottom();
-      for (const m of j.msgs){
+      for (const m of j.msgs.filter(x => !x.obs_only)){
         const div = document.createElement('div'); div.className = 'm';
         let h = '<span class="t">' + m.ts + '</span>'
               + '<span class="u" style="color:' + m.color + '">' + esc(m.user) + '</span>: ';
@@ -672,6 +694,8 @@ OBS_CHAT_HTML = """<!doctype html>
       unicode-bidi:plaintext; animation:in .18s ease-out;
       overflow-wrap:anywhere; }
  .u { font-weight:700; }
+ .mic { background:rgba(90,50,150,.45); border-radius:10px;
+        padding:2px 10px; }
  @keyframes in { from { opacity:0; transform:translateY(8px); }
                  to { opacity:1; transform:none; } }
 </style></head>
@@ -685,7 +709,8 @@ async function tick(){
     const r = await fetch('/msgs?since=' + last);
     const j = await r.json();
     for (const m of j.msgs){
-      const div = document.createElement('div'); div.className = 'm';
+      const div = document.createElement('div');
+      div.className = m.user.startsWith('🎤') ? 'm mic' : 'm';
       const body = m.tr2 || m.text;
       div.innerHTML = '<span class="u" style="color:' + m.color + '">'
         + esc(m.user) + '</span>: ' + esc(body);
@@ -726,11 +751,14 @@ class PhoneHandler(BaseHTTPRequestHandler):
             text = str(d.get("text", ""))[:500]
             tr_ = d.get("tr")
             tr_ = str(tr_)[:500] if tr_ else None
+            tr2 = d.get("tr2")
+            tr2 = str(tr2)[:500] if tr2 else None
+            obs_only = bool(d.get("obs_only"))
             if not text.strip():
                 self.send_error(400)
                 return
-            self.history.add(user, color, text, tr_)
-            if self.ui_q is not None:
+            self.history.add(user, color, text, tr_, tr2, obs_only)
+            if self.ui_q is not None and not obs_only:
                 self.ui_q.put(("chat", user, color, text, tr_))
             self._reply(b'{"ok":true}', "application/json")
         except (BrokenPipeError, ConnectionError, ValueError):
@@ -964,6 +992,7 @@ class App(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
         self.history = ChatHistory()
+        ensure_speaker(self.cfg)
         self.worker = TranslateWorker(self.raw_q, self.ui_q, self.cfg, self.history)
         self.worker.start()
 
@@ -1128,6 +1157,10 @@ class App(tk.Tk):
         elif cmd == "ghost":
             self.cfg["overlay_ghost"] = not self.cfg.get("overlay_ghost", True)
             save_config(self.cfg)
+        elif cmd == "tts":
+            self.cfg["tts_enabled"] = not self.cfg.get("tts_enabled")
+            save_config(self.cfg)
+            ensure_speaker(self.cfg)
         elif cmd == "exit":
             self.on_close()
             os._exit(0)
@@ -1169,6 +1202,8 @@ class App(tk.Tk):
                              checked=lambda item: bool(self.cfg["overlay_autohide"])),
             pystray.MenuItem(tr("ghost"), put("ghost"),
                              checked=lambda item: bool(self.cfg.get("overlay_ghost", True))),
+            pystray.MenuItem(tr("tts"), put("tts"),
+                             checked=lambda item: bool(self.cfg.get("tts_enabled"))),
             pystray.MenuItem(tr("q_menu"), quality_submenu(self.cfg, pystray)),
             pystray.MenuItem(tr("settings"),
                              lambda icon, item: open_settings_and_restart()),
@@ -1557,6 +1592,7 @@ def run_headless(cfg):
         log("headless mode needs a channel (run windowed once, or pass it as an argument)")
         return
     history = ChatHistory()
+    ensure_speaker(cfg)
     raw_q, ui_q = queue.Queue(), queue.Queue()
     TranslateWorker(raw_q, ui_q, cfg, history).start()
     port, _srv = start_phone_server(history, cfg)

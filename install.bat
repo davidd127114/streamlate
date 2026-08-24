@@ -31,7 +31,7 @@ if not exist "!PY!" (
 
 rem ---------- 2/4 App components ----------
 echo [2/4] Installing app components...
-"!PY!" -m pip install --user --quiet sounddevice faster-whisper numpy pystray pillow qrcode yt-dlp websocket-client cloudscraper pyaudiowpatch
+"!PY!" -m pip install --user --quiet sounddevice faster-whisper numpy pystray pillow qrcode yt-dlp websocket-client cloudscraper pyaudiowpatch pyttsx3
 
 rem ---------- 3/4 Ollama (AI translation engine) ----------
 set "OLLAMA_DIR=%LOCALAPPDATA%\Programs\Ollama"

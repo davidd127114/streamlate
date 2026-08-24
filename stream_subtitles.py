@@ -92,7 +92,28 @@ DEFAULTS = {
     "call_show_english": False,
     "call_silence_rms": 0.003,
     "quality": "auto",           # auto | light | tiny | zero — see quality.py
+    "speak_to_viewers": True,    # your translated voice as rows in the
+                                 # viewer chat feed (no bot login needed)
 }
+
+
+def inject_streamer_line(text, translated, channel):
+    """Push the streamer's translated speech into the viewer chat feed as a
+    chat-style row (obs_only: never echoes on the private overlay/phone)."""
+    body = json.dumps({"user": "🎤 " + (channel or "streamer"),
+                       "color": "#c9a2ff", "text": text, "tr2": translated,
+                       "obs_only": True}).encode("utf-8")
+    for port in range(8765, 8771):
+        try:
+            req = urllib.request.Request(
+                f"http://127.0.0.1:{port}/inject", data=body,
+                headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=3) as r:
+                if r.status == 200:
+                    return True
+        except Exception:
+            continue
+    return False
 
 
 def load_config():
@@ -108,6 +129,22 @@ def load_config():
     except OSError:
         pass
     return cfg
+
+
+_CHANNEL = {"name": ""}
+
+
+def _channel_name():
+    if not _CHANNEL["name"]:
+        try:
+            with open(os.path.join(APP_DIR, "config.json"),
+                      encoding="utf-8-sig") as f:
+                ch = json.load(f).get("channel", "")
+            _CHANNEL["name"] = ch.rstrip("/").split("/")[-1].lstrip("@#") \
+                or "streamer"
+        except (OSError, ValueError):
+            _CHANNEL["name"] = "streamer"
+    return _CHANNEL["name"]
 
 
 def lower_priority():
@@ -513,6 +550,11 @@ def main():
             return
         store.add(text, translated)
         log(f"EN: {text}  →  {cfg['target_lang'].upper()}: {translated}")
+        if cfg.get("speak_to_viewers") and len(text) >= 12:
+            try:
+                inject_streamer_line(text, translated, _channel_name())
+            except Exception:
+                pass
 
     listener = TunedListener(
         on_transcript=on_transcript,

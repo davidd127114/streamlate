@@ -21,7 +21,7 @@ PY_URL = "https://www.python.org/ftp/python/3.13.7/python-3.13.7-amd64.exe"
 OLLAMA_URL = "https://ollama.com/download/OllamaSetup.exe"
 DEPS = ["sounddevice", "faster-whisper", "numpy", "pystray", "pillow",
         "qrcode", "yt-dlp", "websocket-client", "cloudscraper",
-        "pyaudiowpatch"]
+        "pyaudiowpatch", "pyttsx3"]
 
 ARGS = sys.argv[1:]
 TARGET = None

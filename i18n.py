@@ -8,6 +8,10 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 STRINGS = {
     "en": {
+        "tts": "Read chat aloud to me (TTS)",
+        "wiz_tts_sec": "Chat read aloud",
+        "wiz_tts": "Read translated chat aloud to me (TTS)",
+        "wiz_speakfeed": "Also show YOUR voice as rows in the feed (🎤)",
         "wiz_obschat": "Translated chat on your stream (for viewers)",
         "wiz_obschat_on": "Show chat translated on the broadcast (OBS source)",
         "wiz_obschat_lang": "Viewers read chat in:",
@@ -77,6 +81,10 @@ STRINGS = {
         "wiz_ui_lang": "App language",
     },
     "pt": {
+        "tts": "Ler o chat em voz alta pra mim (TTS)",
+        "wiz_tts_sec": "Chat em voz alta",
+        "wiz_tts": "Ler o chat traduzido em voz alta pra mim (TTS)",
+        "wiz_speakfeed": "Mostrar também a SUA voz como linhas no feed (🎤)",
         "wiz_obschat": "Chat traduzido na sua stream (para os viewers)",
         "wiz_obschat_on": "Mostrar o chat traduzido na transmissão (fonte OBS)",
         "wiz_obschat_lang": "Viewers leem o chat em:",
@@ -146,6 +154,10 @@ STRINGS = {
         "wiz_ui_lang": "Idioma do app",
     },
     "he": {
+        "tts": "להקריא לי את הצ'אט (TTS)",
+        "wiz_tts_sec": "הקראת צ'אט",
+        "wiz_tts": "להקריא לי את הצ'אט המתורגם (TTS)",
+        "wiz_speakfeed": "להציג גם את הקול שלך כשורות בפיד (🎤)",
         "wiz_obschat": "צ'אט מתורגם בשידור (לצופים)",
         "wiz_obschat_on": "להציג את הצ'אט מתורגם בשידור (מקור OBS)",
         "wiz_obschat_lang": "הצופים קוראים את הצ'אט ב:",
@@ -215,6 +227,10 @@ STRINGS = {
         "wiz_ui_lang": "שפת האפליקציה",
     },
     "pl": {
+        "tts": "Czytaj mi czat na głos (TTS)",
+        "wiz_tts_sec": "Czat na głos",
+        "wiz_tts": "Czytaj mi przetłumaczony czat na głos (TTS)",
+        "wiz_speakfeed": "Pokazuj też TWÓJ głos jako wiersze w feedzie (🎤)",
         "wiz_obschat": "Przetłumaczony czat na streamie (dla widzów)",
         "wiz_obschat_on": "Pokazuj przetłumaczony czat na transmisji (źródło OBS)",
         "wiz_obschat_lang": "Widzowie czytają czat po:",
@@ -283,6 +299,10 @@ STRINGS = {
         "wiz_ui_lang": "Język aplikacji",
     },
     "ja": {
+        "tts": "チャットを読み上げる（TTS）",
+        "wiz_tts_sec": "チャット読み上げ",
+        "wiz_tts": "翻訳チャットを読み上げてもらう（TTS）",
+        "wiz_speakfeed": "あなたの声もフィードの行として表示（🎤）",
         "wiz_obschat": "配信画面に翻訳チャット（視聴者向け）",
         "wiz_obschat_on": "翻訳したチャットを配信に表示（OBSソース）",
         "wiz_obschat_lang": "視聴者が読む言語:",
@@ -351,6 +371,10 @@ STRINGS = {
         "wiz_ui_lang": "アプリの言語",
     },
     "zh": {
+        "tts": "把聊天读给我听（TTS）",
+        "wiz_tts_sec": "聊天朗读",
+        "wiz_tts": "把翻译后的聊天读给我听（TTS）",
+        "wiz_speakfeed": "把你的声音也作为行显示在源里（🎤）",
         "wiz_obschat": "直播画面上的翻译聊天（给观众）",
         "wiz_obschat_on": "在直播中显示翻译后的聊天（OBS 源）",
         "wiz_obschat_lang": "观众阅读聊天的语言:",
@@ -419,6 +443,10 @@ STRINGS = {
         "wiz_ui_lang": "应用语言",
     },
     "ko": {
+        "tts": "채팅을 소리로 읽어주기 (TTS)",
+        "wiz_tts_sec": "채팅 읽어주기",
+        "wiz_tts": "번역된 채팅을 소리로 읽어주기 (TTS)",
+        "wiz_speakfeed": "내 목소리도 피드에 행으로 표시 (🎤)",
         "wiz_obschat": "방송 화면에 번역된 채팅 (시청자용)",
         "wiz_obschat_on": "번역된 채팅을 방송에 표시 (OBS 소스)",
         "wiz_obschat_lang": "시청자가 읽을 언어:",
@@ -487,6 +515,10 @@ STRINGS = {
         "wiz_ui_lang": "앱 언어",
     },
     "es": {
+        "tts": "Leerme el chat en voz alta (TTS)",
+        "wiz_tts_sec": "Chat en voz alta",
+        "wiz_tts": "Leerme el chat traducido en voz alta (TTS)",
+        "wiz_speakfeed": "Mostrar también TU voz como filas en el feed (🎤)",
         "wiz_obschat": "Chat traducido en tu stream (para viewers)",
         "wiz_obschat_on": "Mostrar el chat traducido en la transmisión (fuente OBS)",
         "wiz_obschat_lang": "Los viewers leen el chat en:",
