@@ -1,0 +1,6 @@
+config.json
+subs_config.json
+*.log
+phone_qr.png
+__pycache__/
+*.pyc

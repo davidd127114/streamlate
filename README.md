@@ -1,0 +1,65 @@
+# Stream Translator
+
+Free, local, live translation for streamers.
+
+- **Your voice → subtitles in another language, on your stream.** Speak
+  English, your viewers read Portuguese (or Spanish, French, German, Japanese,
+  Korean, Russian, Chinese) — rendered inside OBS a couple of seconds behind
+  your voice.
+- **Your chat → English, for you.** Every non-English chat message translated
+  on a click-through in-game overlay and on a phone page you can read from
+  your couch. Viewer count included.
+- **No accounts, no API keys, no cloud required.** Everything runs on your PC.
+  Anonymous read-only Twitch chat connection — it never touches your account.
+
+## How it adapts to YOUR PC (automatically)
+
+On first run it looks at your GPU and picks the biggest translation model
+that fits — you never choose anything:
+
+| Your GPU | Engine it picks | Quality |
+|---|---|---|
+| 20 GB+ (4090/5090…) | Qwen 27B, local | best — natural gamer speech |
+| 11–20 GB | Gemma 12B, local | great |
+| 6–11 GB | Gemma 4B, local | good |
+| less / none | free Google web engine | fine — and zero GPU use |
+
+Speech recognition (Whisper) runs on GPU when you have one, CPU otherwise.
+Every tier works — bigger hardware just sounds more natural.
+
+**Rented GPU instead?** Run [Ollama](https://ollama.com) on any cloud GPU box
+(RunPod, Vast.ai…), put its URL in the setup wizard's "Remote engine URL"
+field, and your PC does almost nothing. ~$0.25/hr buys you the best tier.
+
+## Install (Windows)
+
+1. Install [Python 3.11+](https://python.org) (tick "Add to PATH") and,
+   for AI-quality translation, [Ollama](https://ollama.com).
+2. Download this folder, double-click **`install.bat`** once.
+3. Double-click **`Stream Translator`** — the setup wizard asks your channel,
+   language and mic, detects your hardware, downloads the right model, done.
+
+## Use
+
+- **`Stream Translator`** (purple icon): starts everything — chat overlay,
+  phone page, subtitle engine. Tray icons show it's alive.
+- In OBS, once: `Sources → + → Browser`, URL `http://localhost:8788`,
+  size = your canvas resolution. Captions appear bottom-center when you talk.
+- Phone: open the URL shown in the tray tooltip (same Wi-Fi), or scan
+  `phone_qr.png`.
+- **`Stream Translator OFF`** (gray icon): stops everything.
+
+## Tuning (optional — sensible defaults for everything)
+
+`subs_config.json`: caption language, font size, caption window seconds,
+mic device/channel, `hotwords` (words Whisper should expect — add your
+game's terms!), `show_english`, remote `engine_url`.
+`config.json`: chat channel, model, overlay corner/opacity.
+
+## Notes
+
+- Phone page works on your home network (carrier internet blocks incoming
+  connections from outside).
+- Chat translation falls back Google → nothing breaks if Ollama is off.
+- Made by a streamer who wanted his Brazilian chat to understand him.
+  MIT licensed — do whatever you want with it.
