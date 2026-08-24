@@ -4,6 +4,8 @@ small confirmation splash."""
 import os
 import subprocess
 import sys
+import threading
+import time
 import tkinter as tk
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -59,7 +61,7 @@ def make_share_qr():
         pass
 
 
-def control_panel(en_chat, en_subs, updated):
+def control_panel(en_chat, en_subs, updated, repaired=None):
     """The window that opens when you click Streamlate: live status of both
     halves + the buttons people actually need. Closing it changes nothing —
     Streamlate keeps running in the tray."""
@@ -85,6 +87,9 @@ def control_panel(en_chat, en_subs, updated):
     if updated:
         tk.Label(root, text=tr("updated"), bg=BG, fg="#9adf9e",
                  font=("Segoe UI", 9)).pack()
+    if repaired:
+        tk.Label(root, text=tr("repaired", names=", ".join(repaired)),
+                 bg=BG, fg="#9adf9e", font=("Segoe UI", 9)).pack()
 
     rows = tk.Frame(root, bg=BG)
     rows.pack(pady=8)
@@ -109,7 +114,28 @@ def control_panel(en_chat, en_subs, updated):
         except OSError:
             return False
 
+    boot_t = time.time()
+    diag_state = {"ran": False, "fixes": set()}
+    diag_lbl = tk.Label(root, text="", bg=BG, fg="#ff9d9d",
+                        font=("Segoe UI", 9), wraplength=440, justify="left")
+    repair_btn_holder = {}
+
+    def run_doctor():
+        try:
+            import doctor
+            msgs, fixes = doctor.diagnose(APP_DIR)
+            diag_state["fixes"] = fixes
+            def show():
+                diag_lbl.config(text="🔍 " + "\n".join(msgs[:3]))
+                diag_lbl.pack(pady=(4, 0))
+                if repair_btn_holder.get("show"):
+                    repair_btn_holder["show"]()
+            root.after(0, show)
+        except Exception:
+            pass
+
     def refresh():
+        stuck = False
         for lbl, port, enabled in status_lbls.values():
             if not enabled:
                 lbl.config(text="⚪ " + tr("p_off"), fg=DIM)
@@ -117,6 +143,11 @@ def control_panel(en_chat, en_subs, updated):
                 lbl.config(text="🟢 " + tr("p_on"), fg="#9adf9e")
             else:
                 lbl.config(text="🕓 " + tr("p_starting"), fg="#e6c07b")
+                stuck = True
+        # a service that hasn't come up in 30s is dead — auto-diagnose it
+        if stuck and not diag_state["ran"] and time.time() - boot_t > 30:
+            diag_state["ran"] = True
+            threading.Thread(target=run_doctor, daemon=True).start()
         root.after(2000, refresh)
 
     btns = tk.Frame(root, bg=BG)
@@ -157,6 +188,42 @@ def control_panel(en_chat, en_subs, updated):
         root.destroy()
     mkbtn(3, tr("p_stop"), stop_all, color="#5a2a2a")
 
+    def run_diagnose():
+        def work():
+            try:
+                import doctor
+                path = doctor.write_report(APP_DIR)
+                os.startfile(path)
+            except Exception:
+                pass
+        threading.Thread(target=work, daemon=True).start()
+    mkbtn(4, tr("p_diag"), run_diagnose)
+
+    def do_repair():
+        repair_btn.config(state="disabled", text="…")
+
+        def work():
+            try:
+                import doctor
+                doctor.repair_deps(doctor.missing_deps())
+            except Exception:
+                pass
+            subprocess.Popen(
+                [sys.executable,
+                 os.path.join(APP_DIR, "stream_mode_launcher.py")],
+                cwd=APP_DIR)
+            root.after(0, root.destroy)
+        threading.Thread(target=work, daemon=True).start()
+
+    repair_btn = tk.Button(root, text="🔧 " + tr("p_repair"),
+                           command=do_repair, bg="#3a5f3f", fg=FG, bd=0,
+                           font=("Segoe UI", 10, "bold"), padx=16, pady=7)
+    repair_btn_holder["btn"] = repair_btn
+
+    def show_repair():
+        repair_btn.pack(pady=(4, 2))
+    repair_btn_holder["show"] = show_repair
+
     tk.Label(root, text=tr("p_hint"), bg=BG, fg=DIM,
              font=("Segoe UI", 8), wraplength=430).pack(pady=(6, 12))
     refresh()
@@ -169,6 +236,14 @@ def main():
     try:
         from updater import maybe_update
         updated = maybe_update()
+    except Exception:
+        pass
+    repaired = []
+    try:   # self-repair broken packages BEFORE anything can crash on them
+        import doctor
+        miss = doctor.missing_deps()
+        if miss and doctor.repair_deps(miss):
+            repaired = miss
     except Exception:
         pass
     if not os.path.exists(os.path.join(APP_DIR, "config.json")):
@@ -202,7 +277,7 @@ def main():
         subprocess.Popen(
             [pyw, os.path.join(APP_DIR, "stream_subtitles.py")],
             cwd=APP_DIR, creationflags=CREATE_NO_WINDOW)
-    control_panel(en_chat, en_subs, updated)
+    control_panel(en_chat, en_subs, updated, repaired)
 
 
 if __name__ == "__main__":

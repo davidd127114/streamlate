@@ -8,6 +8,9 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 STRINGS = {
     "en": {
+        "p_diag": "Diagnose",
+        "p_repair": "Repair & restart",
+        "repaired": "✓ self-repaired packages: {names}",
         "wiz_callstream": "Also caption teammates ON STREAM (🎧 label)",
         "wiz_cc_sec": "Native platform captions (CC button)",
         "wiz_cc": "Send captions to the Twitch CC button (viewers toggle them; saved in VODs)",
@@ -86,6 +89,9 @@ STRINGS = {
         "wiz_ui_lang": "App language",
     },
     "pt": {
+        "p_diag": "Diagnosticar",
+        "p_repair": "Reparar e reiniciar",
+        "repaired": "✓ pacotes reparados sozinhos: {names}",
         "wiz_callstream": "Legendar também os amigos da call NA STREAM (🎧)",
         "wiz_cc_sec": "Legendas nativas da plataforma (botão CC)",
         "wiz_cc": "Enviar legendas para o botão CC da Twitch (o viewer liga/desliga; fica no VOD)",
@@ -164,6 +170,9 @@ STRINGS = {
         "wiz_ui_lang": "Idioma do app",
     },
     "he": {
+        "p_diag": "אבחון",
+        "p_repair": "תיקון והפעלה מחדש",
+        "repaired": "✓ חבילות תוקנו אוטומטית: {names}",
         "wiz_callstream": "לתת כתוביות גם לחברי השיחה בשידור (🎧)",
         "wiz_cc_sec": "כתוביות מובנות של הפלטפורמה (כפתור CC)",
         "wiz_cc": "לשלוח כתוביות לכפתור ה-CC של Twitch (הצופה מפעיל; נשמר ב-VOD)",
@@ -242,6 +251,9 @@ STRINGS = {
         "wiz_ui_lang": "שפת האפליקציה",
     },
     "pl": {
+        "p_diag": "Diagnozuj",
+        "p_repair": "Napraw i uruchom ponownie",
+        "repaired": "✓ samodzielnie naprawiono pakiety: {names}",
         "wiz_callstream": "Napisy dla znajomych z rozmowy też NA STREAMIE (🎧)",
         "wiz_cc_sec": "Natywne napisy platformy (przycisk CC)",
         "wiz_cc": "Wysyłaj napisy do przycisku CC Twitcha (widz włącza; zostają w VOD)",
@@ -319,6 +331,9 @@ STRINGS = {
         "wiz_ui_lang": "Język aplikacji",
     },
     "ja": {
+        "p_diag": "診断",
+        "p_repair": "修復して再起動",
+        "repaired": "✓ パッケージを自動修復: {names}",
         "wiz_callstream": "通話仲間の字幕も配信に表示（🎧）",
         "wiz_cc_sec": "プラットフォーム標準字幕（CCボタン）",
         "wiz_cc": "TwitchのCCボタンに字幕を送る（視聴者が切替・VODにも残る）",
@@ -396,6 +411,9 @@ STRINGS = {
         "wiz_ui_lang": "アプリの言語",
     },
     "zh": {
+        "p_diag": "诊断",
+        "p_repair": "修复并重启",
+        "repaired": "✓ 已自动修复软件包: {names}",
         "wiz_callstream": "把语音队友的字幕也放到直播上（🎧）",
         "wiz_cc_sec": "平台原生字幕（CC 按钮）",
         "wiz_cc": "把字幕发送到 Twitch 的 CC 按钮（观众自行开关；保存到 VOD）",
@@ -473,6 +491,9 @@ STRINGS = {
         "wiz_ui_lang": "应用语言",
     },
     "ko": {
+        "p_diag": "진단",
+        "p_repair": "복구 후 재시작",
+        "repaired": "✓ 패키지 자동 복구됨: {names}",
         "wiz_callstream": "통화 팀원 자막도 방송에 표시 (🎧)",
         "wiz_cc_sec": "플랫폼 기본 자막 (CC 버튼)",
         "wiz_cc": "Twitch CC 버튼으로 자막 보내기 (시청자가 켜고 끔; VOD에 저장)",
@@ -550,6 +571,9 @@ STRINGS = {
         "wiz_ui_lang": "앱 언어",
     },
     "es": {
+        "p_diag": "Diagnosticar",
+        "p_repair": "Reparar y reiniciar",
+        "repaired": "✓ paquetes autorreparados: {names}",
         "wiz_callstream": "Subtitular también a los compañeros EN EL STREAM (🎧)",
         "wiz_cc_sec": "Subtítulos nativos de la plataforma (botón CC)",
         "wiz_cc": "Enviar subtítulos al botón CC de Twitch (el viewer los activa; quedan en el VOD)",
