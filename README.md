@@ -70,9 +70,8 @@ can produce stray bubbles (game sound effects are ignored fine). If you want
 surgical isolation, the classic streamer trick works: install the free
 [VB-Cable](https://vb-audio.com/Cable/), set Discord's output device to
 *CABLE Input*, enable "listen to this device" on *CABLE Output* so you still
-hear the call — optional, for purists. To listen to a specific output device
-instead of the default one, put part of its name in `"call_device"` in
-`subs_config.json` (e.g. `"call_device": "CABLE"`).
+hear the call — optional, for purists. Which output device to listen to is
+picked in **Change settings → More settings**, no config editing.
 
 **Changing your mind later:** every tray icon has **Change settings** — it
 reopens the setup wizard (mic, languages, channel) and restarts Streamlate

@@ -33,8 +33,16 @@ def _merge_into(path, new_keys):
         json.dump(cur, f, indent=2)
 
 
+def read_config(name):
+    try:
+        with open(os.path.join(APP_DIR, name), encoding="utf-8-sig") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
 def write_configs(channel, target_lang, mic_device, plan, engine_url,
-                  spoken_lang="en"):
+                  spoken_lang="en", extra_chat=None, extra_subs=None):
     chat = {
         "channel": channel,
         "platform": "auto",
@@ -42,6 +50,7 @@ def write_configs(channel, target_lang, mic_device, plan, engine_url,
         "ollama_model": plan["ollama_model"] or "gemma3:4b",
         "engine_url": engine_url,
     }
+    chat.update(extra_chat or {})
     whisper_model = plan["whisper_model"]
     if spoken_lang != "en" and whisper_model.endswith(".en"):
         whisper_model = whisper_model[:-3]   # multilingual variant
@@ -57,8 +66,20 @@ def write_configs(channel, target_lang, mic_device, plan, engine_url,
         "model": whisper_model,
         "use_gpu": plan["use_gpu"],
     }
+    subs.update(extra_subs or {})
     _merge_into(os.path.join(APP_DIR, "config.json"), chat)
     _merge_into(os.path.join(APP_DIR, "subs_config.json"), subs)
+
+
+def list_outputs():
+    """Loopback-capturable output devices for voice-chat translation."""
+    try:
+        import pyaudiowpatch as pa
+        with pa.PyAudio() as p:
+            return [d["name"].replace(" [Loopback]", "")
+                    for d in p.get_loopback_device_info_generator()]
+    except Exception:
+        return []
 
 
 def list_mics():
@@ -80,42 +101,56 @@ def main_gui():
     from tkinter import ttk
 
     plan = hardware.pick()
+    chat_cfg = read_config("config.json")
+    subs_cfg = read_config("subs_config.json")
+    code2name = {c: n for n, c in LANGS}
+
     root = tk.Tk()
     root.title(tr("wiz_title"))
     root.configure(bg="#141417")
     root.resizable(False, False)
     FG, BG, ACC = "#e8e8ee", "#141417", "#a970ff"
 
-    def row(label):
-        f = tk.Frame(root, bg=BG)
-        f.pack(fill="x", padx=24, pady=(10, 0))
+    def row(label, parent=None):
+        f = tk.Frame(parent or root, bg=BG)
+        f.pack(fill="x", padx=24, pady=(8, 0))
         tk.Label(f, text=label, bg=BG, fg=FG,
                  font=("Segoe UI", 10, "bold")).pack(anchor="w")
         return f
 
     tk.Label(root, text="Streamlate", bg=BG, fg=ACC,
-             font=("Segoe UI", 16, "bold"), pady=10).pack()
+             font=("Segoe UI", 16, "bold"), pady=8).pack()
 
     r = row(tr("wiz_channel"))
-    channel_var = tk.StringVar()
+    channel_var = tk.StringVar(value=chat_cfg.get("channel", ""))
     tk.Entry(r, textvariable=channel_var, width=42,
              font=("Segoe UI", 11)).pack(anchor="w", pady=3)
 
     r = row(tr("wiz_speak"))
-    spoken_var = tk.StringVar(value=LANGS[0][0])
+    spoken_var = tk.StringVar(
+        value=code2name.get(subs_cfg.get("spoken_lang", "en"), LANGS[0][0]))
     ttk.Combobox(r, textvariable=spoken_var, state="readonly", width=28,
                  values=[n for n, _ in LANGS]).pack(anchor="w", pady=3)
 
     r = row(tr("wiz_caption"))
-    lang_var = tk.StringVar(value=LANGS[1][0])
+    lang_var = tk.StringVar(
+        value=code2name.get(subs_cfg.get("target_lang", "pt"), LANGS[1][0]))
     ttk.Combobox(r, textvariable=lang_var, state="readonly", width=28,
                  values=[n for n, _ in LANGS]).pack(anchor="w", pady=3)
 
     r = row(tr("wiz_mic"))
     mics = list_mics()
-    mic_var = tk.StringVar(value=tr("wiz_mic_default"))
+    mic_default = tr("wiz_mic_default")
+    cur_mic = subs_cfg.get("mic_device")
+    mic_init = mic_default
+    if cur_mic is not None:
+        for m in mics:
+            if m.startswith(f"[{cur_mic}]"):
+                mic_init = m
+                break
+    mic_var = tk.StringVar(value=mic_init)
     ttk.Combobox(r, textvariable=mic_var, state="readonly", width=48,
-                 values=[tr("wiz_mic_default")] + mics).pack(anchor="w", pady=3)
+                 values=[mic_default] + mics).pack(anchor="w", pady=3)
 
     r = row(tr("wiz_engine"))
     if plan["translator"] == "ollama":
@@ -128,13 +163,87 @@ def main_gui():
     tk.Label(r, text=engine_txt, bg=BG, fg="#9adf9e", justify="left",
              font=("Segoe UI", 10)).pack(anchor="w", pady=3)
 
-    r = row(tr("wiz_url"))
-    url_var = tk.StringVar(value="http://localhost:11434")
+    # ---------------- advanced (folded away for first-time users) ----------
+    adv = tk.Frame(root, bg=BG)
+    adv_open = tk.BooleanVar(value=False)
+
+    def toggle_adv():
+        if adv_open.get():
+            adv.pack_forget()
+            adv_open.set(False)
+            adv_btn.config(text="⚙  " + tr("wiz_more") + "  ▸")
+        else:
+            adv.pack(fill="x", before=status)
+            adv_open.set(True)
+            adv_btn.config(text="⚙  " + tr("wiz_more") + "  ▾")
+
+    adv_btn = tk.Button(root, text="", command=toggle_adv, bg="#26262c",
+                        fg=FG, bd=0, font=("Segoe UI", 10), padx=14, pady=5)
+    adv_btn.pack(pady=(12, 0))
+
+    r = row(tr("wiz_calltr"), adv)
+    call_var = tk.BooleanVar(value=bool(subs_cfg.get("call_translate")))
+    tk.Checkbutton(r, text=tr("wiz_call_on"), variable=call_var, bg=BG,
+                   fg=FG, selectcolor="#26262c", activebackground=BG,
+                   activeforeground=FG,
+                   font=("Segoe UI", 10)).pack(anchor="w")
+    outs = list_outputs()
+    call_dev_default = tr("wiz_out_default")
+    cur_dev = (subs_cfg.get("call_device") or "").strip()
+    dev_init = call_dev_default
+    for o in outs:
+        if cur_dev and cur_dev.lower() in o.lower():
+            dev_init = o
+            break
+    call_dev_var = tk.StringVar(value=dev_init)
+    ttk.Combobox(r, textvariable=call_dev_var, state="readonly", width=48,
+                 values=[call_dev_default] + outs).pack(anchor="w", pady=3)
+    call_lang_var = tk.StringVar(
+        value=code2name.get(subs_cfg.get("call_target", "en"), LANGS[0][0]))
+    f2 = tk.Frame(r, bg=BG)
+    f2.pack(anchor="w", pady=(2, 0))
+    tk.Label(f2, text=tr("wiz_call_lang"), bg=BG, fg=FG,
+             font=("Segoe UI", 10)).pack(side="left")
+    ttk.Combobox(f2, textvariable=call_lang_var, state="readonly", width=22,
+                 values=[n for n, _ in LANGS]).pack(side="left", padx=6)
+
+    r = row(tr("wiz_look"), adv)
+    f3 = tk.Frame(r, bg=BG)
+    f3.pack(anchor="w", pady=2)
+    tk.Label(f3, text=tr("wiz_font"), bg=BG, fg=FG,
+             font=("Segoe UI", 10)).pack(side="left")
+    font_var = tk.IntVar(value=int(subs_cfg.get("font_px", 64)))
+    tk.Spinbox(f3, from_=24, to=110, increment=4, textvariable=font_var,
+               width=5, font=("Segoe UI", 10)).pack(side="left", padx=6)
+    showen_var = tk.BooleanVar(value=bool(subs_cfg.get("show_english")))
+    tk.Checkbutton(r, text=tr("wiz_show_both"), variable=showen_var, bg=BG,
+                   fg=FG, selectcolor="#26262c", activebackground=BG,
+                   activeforeground=FG,
+                   font=("Segoe UI", 10)).pack(anchor="w")
+
+    r = row(tr("wiz_hotwords"), adv)
+    hot_var = tk.StringVar(value=subs_cfg.get("hotwords", ""))
+    tk.Entry(r, textvariable=hot_var, width=58,
+             font=("Segoe UI", 9)).pack(anchor="w", pady=3)
+
+    r = row(tr("wiz_ui_lang"), adv)
+    UI_LANGS = [("Auto", "auto"), ("English", "en"),
+                ("Português", "pt"), ("Español", "es"), ("עברית", "he")]
+    ui2name = {c: n for n, c in UI_LANGS}
+    ui_var = tk.StringVar(
+        value=ui2name.get(chat_cfg.get("ui_lang", "auto"), "Auto"))
+    ttk.Combobox(r, textvariable=ui_var, state="readonly", width=18,
+                 values=[n for n, _ in UI_LANGS]).pack(anchor="w", pady=3)
+
+    r = row(tr("wiz_url"), adv)
+    url_var = tk.StringVar(
+        value=chat_cfg.get("engine_url", "http://localhost:11434"))
     tk.Entry(r, textvariable=url_var, width=42,
              font=("Segoe UI", 10)).pack(anchor="w", pady=3)
 
     status = tk.Label(root, text="", bg=BG, fg="#c9a2ff", font=("Segoe UI", 10))
-    status.pack(pady=(10, 0))
+    status.pack(pady=(8, 0))
+    toggle_adv(), toggle_adv()   # initialize button label (ends closed)
 
     def pull_then_save():
         model = plan["ollama_model"]
@@ -161,8 +270,20 @@ def main_gui():
         ch = channel_var.get().strip()
         if not (ch.startswith("@") or "/" in ch):   # plain Twitch name
             ch = ch.lstrip("#").lower()
+        dev = call_dev_var.get()
+        extra_subs = {
+            "call_translate": bool(call_var.get()),
+            "call_device": "" if dev == call_dev_default else dev,
+            "call_target": dict(LANGS)[call_lang_var.get()],
+            "font_px": int(font_var.get()),
+            "show_english": bool(showen_var.get()),
+        }
+        if hot_var.get().strip():
+            extra_subs["hotwords"] = hot_var.get().strip()
+        extra_chat = {"ui_lang": dict(UI_LANGS)[ui_var.get()]}
         write_configs(ch, lang, mic_idx, plan, url_var.get().strip(),
-                      spoken_lang=dict(LANGS)[spoken_var.get()])
+                      spoken_lang=dict(LANGS)[spoken_var.get()],
+                      extra_chat=extra_chat, extra_subs=extra_subs)
         root.destroy()
 
     def save():
