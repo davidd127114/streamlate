@@ -57,6 +57,14 @@ field, and your PC does almost nothing. ~$0.25/hr buys you the best tier.
   `phone_qr.png`.
 - **`Streamlate OFF`** (gray icon): stops everything.
 
+## Playing something heavy?
+
+**Game mode** (in every tray menu) instantly frees your GPU: the AI model is
+unloaded from VRAM on the spot and Streamlate switches to the free web
+engine + CPU speech recognition. Everything keeps working — translation
+quality is just plainer and captions a touch slower. Click it again after
+the game to get full quality back. VRAM cost in game mode: **zero**.
+
 ## Discord / voice-chat translation
 
 Teammates speaking another language in Discord (or in-game VC)? Right-click

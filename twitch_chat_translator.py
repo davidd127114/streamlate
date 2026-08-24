@@ -62,6 +62,7 @@ DEFAULTS = {
     "overlay_pos": "",            # custom "+x+y" from Move mode; empty = corner
     "overlay_autohide": False,
     "background_dim": 0.35,   # brightness of the custom background image
+    "game_mode": False,       # skip the local LLM entirely (google only)
 }
 
 OVERLAY_CORNERS = ["+16+16", "-16+16", "-16-16", "+16-16"]
@@ -210,6 +211,9 @@ _ollama_chat = {"warm": False}
 
 def warm_chat_ollama(cfg):
     """Load the chat LLM in the background; Google covers until it's warm."""
+    if cfg.get("game_mode"):
+        log("game mode: chat stays on google, LLM never loaded")
+        return
     try:
         translate_ollama("Aquecendo o modelo.", cfg["ollama_model"], timeout=300)
         _ollama_chat["warm"] = True
@@ -281,9 +285,10 @@ class TranslateWorker(threading.Thread):
     def translate_any(self, text):
         last_err = None
         for name, fn in ENGINES:
-            if name == "local" and (not _ollama_chat["warm"]
+            if name == "local" and (self.cfg.get("game_mode")
+                                    or not _ollama_chat["warm"]
                                     or self.in_q.qsize() > 5):
-                continue  # not loaded yet, or chat is flooding — use google
+                continue  # game mode, not loaded, or flooding — use google
             if time.time() < self.cooldown.get(name, 0):
                 continue
             try:
@@ -953,6 +958,10 @@ class App(tk.Tk):
             pystray.MenuItem(tr("corner"), put("corner")),
             pystray.MenuItem(tr("autohide"), put("autohide"),
                              checked=lambda item: bool(self.cfg["overlay_autohide"])),
+            pystray.MenuItem(tr("gamemode"),
+                             lambda icon, item:
+                             toggle_game_mode_and_restart(self.cfg),
+                             checked=lambda item: bool(self.cfg.get("game_mode"))),
             pystray.MenuItem(tr("settings"),
                              lambda icon, item: open_settings_and_restart()),
             pystray.MenuItem(tr("exit"), put("exit")),
@@ -1243,6 +1252,38 @@ def _drain_ui_queue(ui_q):
             log("status: " + item[1])
 
 
+def toggle_game_mode_and_restart(cfg):
+    """Flip game mode in both configs, evict the LLM from VRAM, relaunch."""
+    import subprocess
+    on = not cfg.get("game_mode")
+    for name in ("config.json", "subs_config.json"):
+        path = os.path.join(APP_DIR, name)
+        try:
+            with open(path, encoding="utf-8-sig") as f:
+                c = json.load(f)
+        except (OSError, ValueError):
+            c = {}
+        c["game_mode"] = on
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(c, f, indent=2)
+        except OSError:
+            pass
+    if on:
+        for m in {cfg.get("ollama_model"), "qwen3.8:27b"} - {None, ""}:
+            try:
+                body = json.dumps({"model": m, "keep_alive": 0}).encode()
+                req = urllib.request.Request(
+                    ENGINE_URL + "/api/generate", data=body,
+                    headers={"Content-Type": "application/json"})
+                urllib.request.urlopen(req, timeout=10).read()
+            except Exception:
+                pass
+    subprocess.Popen([sys.executable,
+                      os.path.join(APP_DIR, "stream_mode_launcher.py")],
+                     cwd=APP_DIR)
+
+
 def open_settings_and_restart():
     """Re-run the setup wizard, then relaunch the whole stack so every
     change (mic, language, channel) takes effect. Wizard merges configs,
@@ -1300,6 +1341,10 @@ def _run_tray(cfg, url):
             pystray.MenuItem(f"#{cfg['channel']} — {url}", None, enabled=False),
             pystray.MenuItem(tr("open_phone"), open_page, default=True),
             pystray.MenuItem(tr("show_qr"), show_qr),
+            pystray.MenuItem(tr("gamemode"),
+                             lambda icon, item:
+                             toggle_game_mode_and_restart(cfg),
+                             checked=lambda item: bool(cfg.get("game_mode"))),
             pystray.MenuItem(tr("settings"),
                              lambda icon, item: open_settings_and_restart()),
             pystray.MenuItem(tr("exit"), quit_app),
