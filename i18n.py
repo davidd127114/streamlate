@@ -8,6 +8,10 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 STRINGS = {
     "en": {
+        "wiz_callstream": "Also caption teammates ON STREAM (🎧 label)",
+        "wiz_cc_sec": "Native platform captions (CC button)",
+        "wiz_cc": "Send captions to the Twitch CC button (viewers toggle them; saved in VODs)",
+        "wiz_cc_pw": "OBS WebSocket password:",
         "wiz_family": "Censor profanity on viewer-facing output (captions + feed)",
         "tts": "Read chat aloud to me (TTS)",
         "wiz_tts_sec": "Chat read aloud",
@@ -82,6 +86,10 @@ STRINGS = {
         "wiz_ui_lang": "App language",
     },
     "pt": {
+        "wiz_callstream": "Legendar também os amigos da call NA STREAM (🎧)",
+        "wiz_cc_sec": "Legendas nativas da plataforma (botão CC)",
+        "wiz_cc": "Enviar legendas para o botão CC da Twitch (o viewer liga/desliga; fica no VOD)",
+        "wiz_cc_pw": "Senha do WebSocket do OBS:",
         "wiz_family": "Censurar palavrões no que os viewers veem (legendas + feed)",
         "tts": "Ler o chat em voz alta pra mim (TTS)",
         "wiz_tts_sec": "Chat em voz alta",
@@ -156,6 +164,10 @@ STRINGS = {
         "wiz_ui_lang": "Idioma do app",
     },
     "he": {
+        "wiz_callstream": "לתת כתוביות גם לחברי השיחה בשידור (🎧)",
+        "wiz_cc_sec": "כתוביות מובנות של הפלטפורמה (כפתור CC)",
+        "wiz_cc": "לשלוח כתוביות לכפתור ה-CC של Twitch (הצופה מפעיל; נשמר ב-VOD)",
+        "wiz_cc_pw": "סיסמת WebSocket של OBS:",
         "wiz_family": "לצנזר קללות בפלט שהצופים רואים (כתוביות + פיד)",
         "tts": "להקריא לי את הצ'אט (TTS)",
         "wiz_tts_sec": "הקראת צ'אט",
@@ -230,6 +242,10 @@ STRINGS = {
         "wiz_ui_lang": "שפת האפליקציה",
     },
     "pl": {
+        "wiz_callstream": "Napisy dla znajomych z rozmowy też NA STREAMIE (🎧)",
+        "wiz_cc_sec": "Natywne napisy platformy (przycisk CC)",
+        "wiz_cc": "Wysyłaj napisy do przycisku CC Twitcha (widz włącza; zostają w VOD)",
+        "wiz_cc_pw": "Hasło WebSocket OBS:",
         "wiz_family": "Cenzuruj wulgaryzmy w tym, co widzą widzowie (napisy + feed)",
         "tts": "Czytaj mi czat na głos (TTS)",
         "wiz_tts_sec": "Czat na głos",
@@ -303,6 +319,10 @@ STRINGS = {
         "wiz_ui_lang": "Język aplikacji",
     },
     "ja": {
+        "wiz_callstream": "通話仲間の字幕も配信に表示（🎧）",
+        "wiz_cc_sec": "プラットフォーム標準字幕（CCボタン）",
+        "wiz_cc": "TwitchのCCボタンに字幕を送る（視聴者が切替・VODにも残る）",
+        "wiz_cc_pw": "OBS WebSocketパスワード:",
         "wiz_family": "視聴者向け出力の不適切な言葉を伏せ字に（字幕＋フィード）",
         "tts": "チャットを読み上げる（TTS）",
         "wiz_tts_sec": "チャット読み上げ",
@@ -376,6 +396,10 @@ STRINGS = {
         "wiz_ui_lang": "アプリの言語",
     },
     "zh": {
+        "wiz_callstream": "把语音队友的字幕也放到直播上（🎧）",
+        "wiz_cc_sec": "平台原生字幕（CC 按钮）",
+        "wiz_cc": "把字幕发送到 Twitch 的 CC 按钮（观众自行开关；保存到 VOD）",
+        "wiz_cc_pw": "OBS WebSocket 密码:",
         "wiz_family": "对观众可见内容进行脏话过滤（字幕+聊天源）",
         "tts": "把聊天读给我听（TTS）",
         "wiz_tts_sec": "聊天朗读",
@@ -449,6 +473,10 @@ STRINGS = {
         "wiz_ui_lang": "应用语言",
     },
     "ko": {
+        "wiz_callstream": "통화 팀원 자막도 방송에 표시 (🎧)",
+        "wiz_cc_sec": "플랫폼 기본 자막 (CC 버튼)",
+        "wiz_cc": "Twitch CC 버튼으로 자막 보내기 (시청자가 켜고 끔; VOD에 저장)",
+        "wiz_cc_pw": "OBS WebSocket 비밀번호:",
         "wiz_family": "시청자에게 보이는 출력의 욕설 가리기 (자막+피드)",
         "tts": "채팅을 소리로 읽어주기 (TTS)",
         "wiz_tts_sec": "채팅 읽어주기",
@@ -522,6 +550,10 @@ STRINGS = {
         "wiz_ui_lang": "앱 언어",
     },
     "es": {
+        "wiz_callstream": "Subtitular también a los compañeros EN EL STREAM (🎧)",
+        "wiz_cc_sec": "Subtítulos nativos de la plataforma (botón CC)",
+        "wiz_cc": "Enviar subtítulos al botón CC de Twitch (el viewer los activa; quedan en el VOD)",
+        "wiz_cc_pw": "Contraseña del WebSocket de OBS:",
         "wiz_family": "Censurar groserías en lo que ven los viewers (subtítulos + feed)",
         "tts": "Leerme el chat en voz alta (TTS)",
         "wiz_tts_sec": "Chat en voz alta",

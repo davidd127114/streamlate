@@ -26,6 +26,7 @@ class CallListener(threading.Thread):
         self.log = log
         self.stop_ev = threading.Event()
         self.inject_port = None
+        self.caption_cb = None               # optional: captions on stream
 
     def stop(self):
         self.stop_ev.set()
@@ -137,6 +138,11 @@ class CallListener(threading.Thread):
                             translation = None
                         if translation and translation.strip():
                             self.inject(text, translation.strip())
+                            if self.caption_cb:
+                                try:
+                                    self.caption_cb(text, translation.strip())
+                                except Exception:
+                                    pass
                     try:
                         stream.close()
                     except Exception:

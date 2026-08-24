@@ -17,9 +17,19 @@ LANGS = [("English", "en"), ("Portuguese (Brazil)", "pt"), ("Spanish", "es"),
          ("Hebrew — עברית", "he"), ("Polish — Polski", "pl"),
          ("French", "fr"), ("German", "de"), ("Japanese — 日本語", "ja"),
          ("Korean — 한국어", "ko"), ("Russian", "ru"),
-         ("Chinese — 中文", "zh")]
+         ("Chinese — 中文", "zh"), ("Arabic — العربية", "ar"),
+         ("Italian", "it"), ("Dutch", "nl"), ("Turkish — Türkçe", "tr"),
+         ("Hindi — हिन्दी", "hi"), ("Indonesian", "id"),
+         ("Vietnamese — Tiếng Việt", "vi"), ("Thai — ไทย", "th"),
+         ("Ukrainian — Українська", "uk"), ("Czech — Čeština", "cs"),
+         ("Swedish", "sv"), ("Romanian", "ro"), ("Greek — Ελληνικά", "el"),
+         ("Hungarian", "hu"), ("Danish", "da"), ("Finnish", "fi"),
+         ("Norwegian", "no"), ("Bulgarian", "bg"), ("Malay", "ms")]
 
-HARD_SPEECH = {"he", "ja", "ko", "zh", "ru", "pl"}
+SPOKEN_LANGS = [("Auto — I mix languages (detect)", "auto")] + LANGS
+
+HARD_SPEECH = {"he", "ja", "ko", "zh", "ru", "pl", "ar", "hi", "th",
+               "vi", "uk", "el", "bg", "auto"}
 
 
 def _merge_into(path, new_keys):
@@ -128,16 +138,18 @@ def main_gui():
              font=("Segoe UI", 11)).pack(anchor="w", pady=3)
 
     r = row(tr("wiz_speak"))
+    spoken2name = {c: n for n, c in SPOKEN_LANGS}
     spoken_var = tk.StringVar(
-        value=code2name.get(subs_cfg.get("spoken_lang", "en"), LANGS[0][0]))
+        value=spoken2name.get(subs_cfg.get("spoken_lang", "en"),
+                              SPOKEN_LANGS[1][0]))
     spoken_cb = ttk.Combobox(r, textvariable=spoken_var, state="readonly",
-                             width=28, values=[n for n, _ in LANGS])
+                             width=30, values=[n for n, _ in SPOKEN_LANGS])
     spoken_cb.pack(anchor="w", pady=3)
 
     def _audience_defaults(_ev=None):
         # growth logic: non-English streamer → viewer-facing stuff defaults
         # to English (the bridge language); English streamer → Portuguese.
-        default = ("English" if dict(LANGS)[spoken_var.get()] != "en"
+        default = ("English" if dict(SPOKEN_LANGS)[spoken_var.get()] != "en"
                    else "Portuguese (Brazil)")
         lang_var.set(default)
         obslang_var.set(default)
@@ -227,6 +239,25 @@ def main_gui():
              font=("Segoe UI", 10)).pack(side="left")
     ttk.Combobox(f2, textvariable=call_lang_var, state="readonly", width=22,
                  values=[n for n, _ in LANGS]).pack(side="left", padx=6)
+    callstream_var = tk.BooleanVar(value=bool(subs_cfg.get("call_on_stream")))
+    tk.Checkbutton(r, text=tr("wiz_callstream"), variable=callstream_var,
+                   bg=BG, fg=FG, selectcolor="#26262c", activebackground=BG,
+                   activeforeground=FG,
+                   font=("Segoe UI", 10)).pack(anchor="w")
+
+    r = row(tr("wiz_cc_sec"), adv)
+    cc_var = tk.BooleanVar(value=bool(subs_cfg.get("obs_cc")))
+    tk.Checkbutton(r, text=tr("wiz_cc"), variable=cc_var, bg=BG, fg=FG,
+                   selectcolor="#26262c", activebackground=BG,
+                   activeforeground=FG,
+                   font=("Segoe UI", 10)).pack(anchor="w")
+    f_cc = tk.Frame(r, bg=BG)
+    f_cc.pack(anchor="w", pady=(2, 0))
+    tk.Label(f_cc, text=tr("wiz_cc_pw"), bg=BG, fg=FG,
+             font=("Segoe UI", 10)).pack(side="left")
+    ccpw_var = tk.StringVar(value=subs_cfg.get("obs_ws_password", ""))
+    tk.Entry(f_cc, textvariable=ccpw_var, width=24, show="•",
+             font=("Segoe UI", 10)).pack(side="left", padx=6)
 
     r = row(tr("wiz_obschat"), adv)
     obschat_var = tk.BooleanVar(value=bool(chat_cfg.get("obs_chat_enabled")))
@@ -328,10 +359,14 @@ def main_gui():
         ch = channel_var.get().strip()
         if not (ch.startswith("@") or "/" in ch):   # plain Twitch name
             ch = ch.lstrip("#").lower()
+        spoken_code = dict(SPOKEN_LANGS)[spoken_var.get()]
         dev = call_dev_var.get()
         extra_subs = {
             "family_filter": bool(family_var.get()),
             "speak_to_viewers": bool(speakfeed_var.get()),
+            "call_on_stream": bool(callstream_var.get()),
+            "obs_cc": bool(cc_var.get()),
+            "obs_ws_password": ccpw_var.get().strip(),
             "call_translate": bool(call_var.get()),
             "call_device": "" if dev == call_dev_default else dev,
             "call_target": dict(LANGS)[call_lang_var.get()],
@@ -341,7 +376,8 @@ def main_gui():
         if hot_var.get().strip():
             extra_subs["hotwords"] = hot_var.get().strip()
         extra_chat = {"ui_lang": dict(UI_LANGS)[ui_var.get()],
-                      "my_lang": dict(LANGS)[spoken_var.get()],
+                      "my_lang": ("en" if spoken_code == "auto"
+                                  else spoken_code),
                       "tts_enabled": bool(tts_var.get()),
                       "family_filter": bool(family_var.get()),
                       "enable_chat": bool(en_chat_var.get()),
@@ -349,7 +385,7 @@ def main_gui():
                       "obs_chat_enabled": bool(obschat_var.get()),
                       "obs_chat_lang": dict(LANGS)[obslang_var.get()]}
         write_configs(ch, lang, mic_idx, plan, url_var.get().strip(),
-                      spoken_lang=dict(LANGS)[spoken_var.get()],
+                      spoken_lang=spoken_code,
                       extra_chat=extra_chat, extra_subs=extra_subs)
         root.destroy()
 

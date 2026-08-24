@@ -96,7 +96,33 @@ DEFAULTS = {
                                  # viewer chat feed (no bot login needed)
     "family_filter": False,      # censor profanity on viewer-facing output
     "save_srt": True,            # write session subtitles as .srt for VODs
+    "call_on_stream": False,     # caption voice-chat (Discord) on stream too
+    "obs_cc": False,             # push native platform captions (CC button)
+    "obs_ws_password": "",       # OBS Tools → WebSocket Server Settings
 }
+
+
+# ------------------------------------------- native CC via OBS websocket
+CC = {"cl": None, "dead": False}
+
+
+def send_native_cc(cfg, text):
+    """Twitch's player CC button: viewers toggle captions themselves and
+    they persist into the VOD. Rides OBS's SendStreamCaption request."""
+    if CC["dead"] or not text:
+        return
+    try:
+        if CC["cl"] is None:
+            import obsws_python as obs
+            CC["cl"] = obs.ReqClient(host="localhost", port=4455,
+                                     password=cfg.get("obs_ws_password", ""),
+                                     timeout=5)
+            log("native CC: connected to OBS websocket")
+        CC["cl"].send_stream_caption(text[:480])
+    except Exception as e:
+        log(f"native CC unavailable ({e}) — check OBS Tools → WebSocket "
+            "Server Settings and the password in Streamlate settings")
+        CC["dead"] = True
 
 
 # ------------------------------------------------------------- SRT session log
@@ -248,10 +274,17 @@ def _gtx(text, source, target):
 LANG_NAMES = {"en": "English", "pt": "Brazilian Portuguese", "es": "Spanish",
               "fr": "French", "de": "German", "ja": "Japanese",
               "ko": "Korean", "ru": "Russian", "zh": "Chinese",
-              "he": "Hebrew", "pl": "Polish"}
+              "he": "Hebrew", "pl": "Polish", "ar": "Arabic",
+              "it": "Italian", "nl": "Dutch", "tr": "Turkish",
+              "hi": "Hindi", "id": "Indonesian", "vi": "Vietnamese",
+              "th": "Thai", "uk": "Ukrainian", "cs": "Czech",
+              "sv": "Swedish", "ro": "Romanian", "el": "Greek",
+              "hu": "Hungarian", "da": "Danish", "fi": "Finnish",
+              "no": "Norwegian", "bg": "Bulgarian", "ms": "Malay"}
 
 # languages where whisper's 'small' struggles — bump to 'medium' on GPU
-HARD_SPEECH = {"he", "ja", "ko", "zh", "ru", "pl"}
+HARD_SPEECH = {"he", "ja", "ko", "zh", "ru", "pl", "ar", "hi", "th",
+               "vi", "uk", "el", "bg", "auto"}
 
 ENGINE_URL = "http://localhost:11434"  # local Ollama, or a rented GPU box
 
@@ -333,11 +366,12 @@ def call_translate(text, target, cfg):
 CALL = {"listener": None}
 
 
-def start_call(cfg):
+def start_call(cfg, caption_cb=None):
     from call_audio import CallListener
     if CALL["listener"]:
         return
     CALL["listener"] = CallListener(cfg, call_translate, log)
+    CALL["listener"].caption_cb = caption_cb or CALL.get("cb")
     CALL["listener"].start()
 
 
@@ -349,6 +383,8 @@ def stop_call():
 
 def translate(text, target, cfg=None):
     source = (cfg or {}).get("spoken_lang", "en")
+    if source == "auto":
+        return call_translate(text, target, cfg or {})
     if cfg and cfg.get("translator") == "ollama" and _ollama_state["warm"]:
         if time.time() >= _ollama_state["cooldown_until"]:
             try:
@@ -585,6 +621,8 @@ def main():
                 shown = censor(text, APP_DIR)
             store.add(shown, shown)   # captions-only mode, no translation
             srt_log(cfg, shown, shown)
+            if cfg.get("obs_cc"):
+                send_native_cc(cfg, shown)
             log(f"CAPTION: {shown}")
             return
         try:
@@ -599,6 +637,8 @@ def main():
             shown_tr = censor(translated, APP_DIR)
         store.add(shown_orig, shown_tr)
         srt_log(cfg, shown_orig, shown_tr)
+        if cfg.get("obs_cc"):
+            send_native_cc(cfg, shown_tr)
         log(f"EN: {text}  →  {cfg['target_lang'].upper()}: {translated}")
         if cfg.get("speak_to_viewers") and len(text) >= 12:
             try:
@@ -615,17 +655,18 @@ def main():
         channel=cfg["mic_channel"],
     )
     listener.hotwords = cfg["hotwords"] or None
-    listener.language = cfg.get("spoken_lang", "en")
-    if listener.language != "en" and cfg["model"].endswith(".en"):
+    spoken = cfg.get("spoken_lang", "en")
+    listener.language = None if spoken == "auto" else spoken
+    if spoken != "en" and cfg["model"].endswith(".en"):
         # English-only whisper can't hear other languages — use multilingual
         cfg["model"] = cfg["model"][:-3]
         listener.model_size = cfg["model"]
         log(f"non-English speaker: whisper model switched to '{cfg['model']}'")
-    if (listener.language in HARD_SPEECH and cfg["use_gpu"]
+    if (spoken in HARD_SPEECH and cfg["use_gpu"]
             and cfg["model"] in ("base", "small")):
         cfg["model"] = "medium"   # noticeably better for these languages
         listener.model_size = "medium"
-        log(f"'{listener.language}' speech: whisper bumped to 'medium'")
+        log(f"'{spoken}' speech: whisper bumped to 'medium'")
     if not cfg["use_gpu"]:
         # force CPU so the game's GPU is never touched
         from faster_whisper import WhisperModel
@@ -636,8 +677,25 @@ def main():
         log(f"whisper '{cfg['model']}' forced onto CPU (int8, "
             f"{cfg['cpu_threads']} threads)")
     listener.start()
+
+    def call_caption(text, translated):
+        """Teammate voices captioned on stream, labeled — no tool on the
+        market does this (deaf/HoH collab requests go unanswered)."""
+        if not cfg.get("call_on_stream"):
+            return
+        line_o, line_t = "🎧 " + text, "🎧 " + translated
+        if cfg.get("family_filter"):
+            from profanity import censor
+            line_o = censor(line_o, APP_DIR)
+            line_t = censor(line_t, APP_DIR)
+        store.add(line_o, line_t)
+        srt_log(cfg, line_o, line_t)
+        if cfg.get("obs_cc"):
+            send_native_cc(cfg, line_t)
+
+    CALL["cb"] = call_caption
     if cfg.get("call_translate"):
-        start_call(cfg)
+        start_call(cfg, call_caption)
     run_tray(cfg)
 
 
