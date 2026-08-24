@@ -69,6 +69,7 @@ DEFAULTS = {
     "my_lang": "en",             # language YOU read chat in (overlay + phone)
     "tts_enabled": False,        # read translated chat aloud
     "tts_volume": 0.9,
+    "family_filter": False,      # censor profanity on viewer-facing output
 }
 
 SPEAKER = {"obj": None}
@@ -375,6 +376,18 @@ class TranslateWorker(threading.Thread):
         if key in self.cache:
             self.cache.move_to_end(key)
             return self.cache[key][0]
+        def finish(tr2):
+            """Viewer-facing: optionally censor; fall back to censored
+            original so slurs never ride through as 'already translated'."""
+            if self.cfg.get("family_filter"):
+                from profanity import censor
+                if tr2:
+                    tr2 = censor(tr2, APP_DIR)
+                else:
+                    c = censor(t, APP_DIR)
+                    tr2 = c if c != t else None
+            return tr2
+
         if (_ollama_chat["warm"] and self.cfg.get("quality") != "zero"
                 and self.in_q.qsize() <= 5
                 and time.time() >= self.cooldown.get("local", 0)):
@@ -384,6 +397,7 @@ class TranslateWorker(threading.Thread):
                 if tr2 and difflib.SequenceMatcher(
                         None, tr2.lower(), t.lower()).ratio() > 0.92:
                     tr2 = None
+                tr2 = finish(tr2)
                 self.cache[key] = (tr2, "")
                 if len(self.cache) > 800:
                     self.cache.popitem(last=False)
@@ -404,7 +418,8 @@ class TranslateWorker(threading.Thread):
             if detected == lang or not tr2:
                 tr2 = None
         except Exception:
-            return None
+            return finish(None)
+        tr2 = finish(tr2)
         self.cache[key] = (tr2, "")
         if len(self.cache) > 800:
             self.cache.popitem(last=False)

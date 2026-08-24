@@ -94,7 +94,46 @@ DEFAULTS = {
     "quality": "auto",           # auto | light | tiny | zero — see quality.py
     "speak_to_viewers": True,    # your translated voice as rows in the
                                  # viewer chat feed (no bot login needed)
+    "family_filter": False,      # censor profanity on viewer-facing output
+    "save_srt": True,            # write session subtitles as .srt for VODs
 }
+
+
+# ------------------------------------------------------------- SRT session log
+SRT = {"t0": None, "rows": [], "base": ""}
+
+
+def _fmt_srt_time(sec):
+    ms = int(sec * 1000)
+    return f"{ms//3600000:02d}:{ms//60000%60:02d}:{ms//1000%60:02d},{ms%1000:03d}"
+
+
+def srt_log(cfg, original, translated):
+    """Append a caption to the session SRT files (original + translated)."""
+    if not cfg.get("save_srt", True):
+        return
+    now = time.time()
+    if SRT["t0"] is None:
+        SRT["t0"] = now
+        os.makedirs(os.path.join(APP_DIR, "subtitles"), exist_ok=True)
+        SRT["base"] = os.path.join(
+            APP_DIR, "subtitles",
+            "stream_" + time.strftime("%Y-%m-%d_%H%M", time.localtime(now)))
+    SRT["rows"].append((now - SRT["t0"], original, translated))
+    try:
+        for idx, lang in ((1, cfg.get("spoken_lang", "en")),
+                          (2, cfg["target_lang"])):
+            path = f"{SRT['base']}.{lang}{'' if idx == 1 else '.translated'}.srt"
+            with open(path, "w", encoding="utf-8") as f:
+                for i, (t, en, tr) in enumerate(SRT["rows"], 1):
+                    nxt = (SRT["rows"][i][0] if i < len(SRT["rows"])
+                           else t + max(2.0, len(en) / 15))
+                    end = min(nxt - 0.05, t + 7.0)
+                    text = en if idx == 1 else tr
+                    f.write(f"{i}\n{_fmt_srt_time(t)} --> "
+                            f"{_fmt_srt_time(end)}\n{text}\n\n")
+    except OSError as e:
+        log(f"srt write failed: {e}")
 
 
 def inject_streamer_line(text, translated, channel):
@@ -540,19 +579,30 @@ def main():
             return
         last_line = text
         if cfg.get("spoken_lang", "en") == cfg["target_lang"]:
-            store.add(text, text)   # captions-only mode, no translation
-            log(f"CAPTION: {text}")
+            shown = text
+            if cfg.get("family_filter"):
+                from profanity import censor
+                shown = censor(text, APP_DIR)
+            store.add(shown, shown)   # captions-only mode, no translation
+            srt_log(cfg, shown, shown)
+            log(f"CAPTION: {shown}")
             return
         try:
             translated = translate(text, cfg["target_lang"], cfg)
         except Exception as e:
             log(f"translate failed: {e}")
             return
-        store.add(text, translated)
+        shown_orig, shown_tr = text, translated
+        if cfg.get("family_filter"):
+            from profanity import censor
+            shown_orig = censor(text, APP_DIR)
+            shown_tr = censor(translated, APP_DIR)
+        store.add(shown_orig, shown_tr)
+        srt_log(cfg, shown_orig, shown_tr)
         log(f"EN: {text}  →  {cfg['target_lang'].upper()}: {translated}")
         if cfg.get("speak_to_viewers") and len(text) >= 12:
             try:
-                inject_streamer_line(text, translated, _channel_name())
+                inject_streamer_line(shown_orig, shown_tr, _channel_name())
             except Exception:
                 pass
 

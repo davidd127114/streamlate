@@ -9,3 +9,5 @@ background.*
 streamlate_link_qr.png
 dist/
 build_tmp/
+subtitles/
+badwords_custom.txt

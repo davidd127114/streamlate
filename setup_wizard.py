@@ -251,6 +251,12 @@ def main_gui():
     tk.Label(r, text="OBS: http://localhost:8765/obs  (1000×420)", bg=BG,
              fg="#9adf9e", font=("Segoe UI", 9)).pack(anchor="w")
 
+    family_var = tk.BooleanVar(value=bool(chat_cfg.get("family_filter")))
+    tk.Checkbutton(r, text=tr("wiz_family"), variable=family_var, bg=BG,
+                   fg=FG, selectcolor="#26262c", activebackground=BG,
+                   activeforeground=FG,
+                   font=("Segoe UI", 10)).pack(anchor="w")
+
     r = row(tr("wiz_tts_sec"), adv)
     tts_var = tk.BooleanVar(value=bool(chat_cfg.get("tts_enabled")))
     tk.Checkbutton(r, text=tr("wiz_tts"), variable=tts_var, bg=BG, fg=FG,
@@ -324,6 +330,7 @@ def main_gui():
             ch = ch.lstrip("#").lower()
         dev = call_dev_var.get()
         extra_subs = {
+            "family_filter": bool(family_var.get()),
             "speak_to_viewers": bool(speakfeed_var.get()),
             "call_translate": bool(call_var.get()),
             "call_device": "" if dev == call_dev_default else dev,
@@ -336,6 +343,7 @@ def main_gui():
         extra_chat = {"ui_lang": dict(UI_LANGS)[ui_var.get()],
                       "my_lang": dict(LANGS)[spoken_var.get()],
                       "tts_enabled": bool(tts_var.get()),
+                      "family_filter": bool(family_var.get()),
                       "enable_chat": bool(en_chat_var.get()),
                       "enable_subs": bool(en_subs_var.get()),
                       "obs_chat_enabled": bool(obschat_var.get()),

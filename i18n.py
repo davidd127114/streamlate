@@ -8,6 +8,7 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 STRINGS = {
     "en": {
+        "wiz_family": "Censor profanity on viewer-facing output (captions + feed)",
         "tts": "Read chat aloud to me (TTS)",
         "wiz_tts_sec": "Chat read aloud",
         "wiz_tts": "Read translated chat aloud to me (TTS)",
@@ -81,6 +82,7 @@ STRINGS = {
         "wiz_ui_lang": "App language",
     },
     "pt": {
+        "wiz_family": "Censurar palavrões no que os viewers veem (legendas + feed)",
         "tts": "Ler o chat em voz alta pra mim (TTS)",
         "wiz_tts_sec": "Chat em voz alta",
         "wiz_tts": "Ler o chat traduzido em voz alta pra mim (TTS)",
@@ -154,6 +156,7 @@ STRINGS = {
         "wiz_ui_lang": "Idioma do app",
     },
     "he": {
+        "wiz_family": "לצנזר קללות בפלט שהצופים רואים (כתוביות + פיד)",
         "tts": "להקריא לי את הצ'אט (TTS)",
         "wiz_tts_sec": "הקראת צ'אט",
         "wiz_tts": "להקריא לי את הצ'אט המתורגם (TTS)",
@@ -227,6 +230,7 @@ STRINGS = {
         "wiz_ui_lang": "שפת האפליקציה",
     },
     "pl": {
+        "wiz_family": "Cenzuruj wulgaryzmy w tym, co widzą widzowie (napisy + feed)",
         "tts": "Czytaj mi czat na głos (TTS)",
         "wiz_tts_sec": "Czat na głos",
         "wiz_tts": "Czytaj mi przetłumaczony czat na głos (TTS)",
@@ -299,6 +303,7 @@ STRINGS = {
         "wiz_ui_lang": "Język aplikacji",
     },
     "ja": {
+        "wiz_family": "視聴者向け出力の不適切な言葉を伏せ字に（字幕＋フィード）",
         "tts": "チャットを読み上げる（TTS）",
         "wiz_tts_sec": "チャット読み上げ",
         "wiz_tts": "翻訳チャットを読み上げてもらう（TTS）",
@@ -371,6 +376,7 @@ STRINGS = {
         "wiz_ui_lang": "アプリの言語",
     },
     "zh": {
+        "wiz_family": "对观众可见内容进行脏话过滤（字幕+聊天源）",
         "tts": "把聊天读给我听（TTS）",
         "wiz_tts_sec": "聊天朗读",
         "wiz_tts": "把翻译后的聊天读给我听（TTS）",
@@ -443,6 +449,7 @@ STRINGS = {
         "wiz_ui_lang": "应用语言",
     },
     "ko": {
+        "wiz_family": "시청자에게 보이는 출력의 욕설 가리기 (자막+피드)",
         "tts": "채팅을 소리로 읽어주기 (TTS)",
         "wiz_tts_sec": "채팅 읽어주기",
         "wiz_tts": "번역된 채팅을 소리로 읽어주기 (TTS)",
@@ -515,6 +522,7 @@ STRINGS = {
         "wiz_ui_lang": "앱 언어",
     },
     "es": {
+        "wiz_family": "Censurar groserías en lo que ven los viewers (subtítulos + feed)",
         "tts": "Leerme el chat en voz alta (TTS)",
         "wiz_tts_sec": "Chat en voz alta",
         "wiz_tts": "Leerme el chat traducido en voz alta (TTS)",
