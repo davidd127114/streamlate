@@ -47,7 +47,10 @@ field, and your PC does almost nothing. ~$0.25/hr buys you the best tier.
 - **`Streamlate`** (purple icon): starts everything — chat overlay,
   phone page, subtitle engine. Tray icons show it's alive.
 - In OBS, once: `Sources → + → Browser`, URL `http://localhost:8788`,
-  size = your canvas resolution. Captions appear bottom-center when you talk.
+  Width `1400`, Height `300`. That gives you a small banner source — **drag
+  it anywhere on your canvas like any other source**; captions hug its
+  bottom edge. (A full-canvas-sized source also works: captions sit
+  bottom-center of the screen.)
 - Phone: open the URL shown in the tray tooltip (same Wi-Fi), or scan
   `phone_qr.png`.
 - **`Streamlate OFF`** (gray icon): stops everything.
@@ -57,8 +60,15 @@ field, and your PC does almost nothing. ~$0.25/hr buys you the best tier.
 Right-click the purple tray icon → **Change background image…** and pick any
 picture (anime wallpaper, your logo…) — the overlay and the phone page both
 use it, auto-darkened so chat stays readable. Or just drop a file called
-`background.png` into the app folder. Same menu: text size, corner,
-auto-hide, show/hide originals — all without touching the game.
+`background.png` into the app folder.
+
+**Moving things around:** tray → **Move mode** unlocks the chat overlay so
+you can drag it anywhere (purple border = unlocked), click Move mode again
+to lock it back into click-through gaming mode — position is remembered.
+Or use **Snap to next corner** for quick corner hopping. The OBS captions
+move the OBS way: just drag the browser source in your OBS preview.
+Everything else in the tray: text size, auto-hide, show/hide originals —
+all without touching the game.
 
 ## Tuning (optional — sensible defaults for everything)
 

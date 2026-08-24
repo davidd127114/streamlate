@@ -57,6 +57,7 @@ DEFAULTS = {
     "overlay_opacity": 0.85,
     "overlay_corner": 1,          # 0=top-left 1=top-right 2=bottom-right 3=bottom-left
     "overlay_size": "420x270",
+    "overlay_pos": "",            # custom "+x+y" from Move mode; empty = corner
     "overlay_autohide": False,
     "background_dim": 0.35,   # brightness of the custom background image
 }
@@ -706,8 +707,10 @@ class App(tk.Tk):
         self.configure(bg=BG)
         if overlay:
             self.overrideredirect(True)
-            self.geometry(cfg["overlay_size"]
-                          + OVERLAY_CORNERS[cfg["overlay_corner"] % 4])
+            self.overlay_locked = True
+            pos = cfg.get("overlay_pos") or OVERLAY_CORNERS[
+                cfg["overlay_corner"] % 4]
+            self.geometry(cfg["overlay_size"] + pos)
             self.attributes("-topmost", True)
             alpha = cfg["overlay_opacity"]
         else:
@@ -777,9 +780,10 @@ class App(tk.Tk):
 
     # ---- overlay: click-through window that can never eat game input ----
 
-    def _apply_overlay_styles(self):
+    def _apply_overlay_styles(self, clickthrough=True):
         """WS_EX_TRANSPARENT (clicks pass through to the game) +
-        WS_EX_NOACTIVATE (never steals focus) + TOOLWINDOW (no alt-tab entry)."""
+        WS_EX_NOACTIVATE (never steals focus) + TOOLWINDOW (no alt-tab entry).
+        Move mode drops TRANSPARENT/NOACTIVATE so the window can be dragged."""
         try:
             import ctypes
             from ctypes import wintypes
@@ -793,11 +797,43 @@ class App(tk.Tk):
             hwnd = int(self.wm_frame(), 16)
             GWL_EXSTYLE = -20
             cur = u.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
-            new = cur | 0x00080000 | 0x00000020 | 0x08000000 | 0x00000080
+            new = cur | 0x00080000 | 0x00000080         # LAYERED | TOOLWINDOW
+            passthru = 0x00000020 | 0x08000000          # TRANSPARENT | NOACTIVATE
+            new = (new | passthru) if clickthrough else (new & ~passthru)
             u.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, new)
-            log(f"overlay styles applied: 0x{new:x}")
+            log(f"overlay styles applied: 0x{new:x} (clickthrough={clickthrough})")
         except Exception as e:
             log(f"overlay styles failed: {e}")
+
+    # ---- Move mode: unlock, drag anywhere, lock back ----
+
+    def _drag_start(self, e):
+        self._drag_off = (e.x_root - self.winfo_x(), e.y_root - self.winfo_y())
+
+    def _drag_move(self, e):
+        self.geometry(f"+{e.x_root - self._drag_off[0]}"
+                      f"+{e.y_root - self._drag_off[1]}")
+
+    def _toggle_move_mode(self):
+        self.overlay_locked = not self.overlay_locked
+        if not self.overlay_locked:
+            self._apply_overlay_styles(clickthrough=False)
+            self.canvas.configure(highlightthickness=2,
+                                  highlightbackground="#a970ff")
+            for w in (self.canvas, self.viewer_label):
+                w.bind("<Button-1>", self._drag_start)
+                w.bind("<B1-Motion>", self._drag_move)
+            self.viewer_label.configure(
+                text="◇ drag me — tray → Move mode again to lock")
+        else:
+            for w in (self.canvas, self.viewer_label):
+                w.unbind("<Button-1>")
+                w.unbind("<B1-Motion>")
+            self.canvas.configure(highlightthickness=0)
+            self.cfg["overlay_pos"] = f"+{self.winfo_x()}+{self.winfo_y()}"
+            save_config(self.cfg)
+            self._apply_overlay_styles()
+            self._refresh_viewers()
 
     def _overlay_show(self):
         self.deiconify()
@@ -843,7 +879,10 @@ class App(tk.Tk):
                 except OSError:
                     pass
             self._load_overlay_bg()
+        elif cmd == "movemode":
+            self._toggle_move_mode()
         elif cmd == "corner":
+            self.cfg["overlay_pos"] = ""
             self.cfg["overlay_corner"] = (self.cfg["overlay_corner"] + 1) % 4
             self.geometry(self.cfg["overlay_size"]
                           + OVERLAY_CORNERS[self.cfg["overlay_corner"]])
@@ -878,7 +917,9 @@ class App(tk.Tk):
             pystray.MenuItem("Show/hide originals", put("orig")),
             pystray.MenuItem("Change background image…", put("bg")),
             pystray.MenuItem("Remove background image", put("bgoff")),
-            pystray.MenuItem("Move to next corner", put("corner")),
+            pystray.MenuItem("Move mode (drag the overlay)", put("movemode"),
+                             checked=lambda item: not self.overlay_locked),
+            pystray.MenuItem("Snap to next corner", put("corner")),
             pystray.MenuItem("Auto-hide when chat is quiet", put("autohide"),
                              checked=lambda item: bool(self.cfg["overlay_autohide"])),
             pystray.MenuItem("Exit overlay", put("exit")),
@@ -942,6 +983,7 @@ class App(tk.Tk):
             self._status_refresh = now
             self._refresh_viewers()
         if (self.overlay and self.cfg["overlay_autohide"]
+                and self.overlay_locked
                 and self.state() != "withdrawn"
                 and now - self.last_msg_time > 8):
             self.withdraw()

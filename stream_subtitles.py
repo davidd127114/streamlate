@@ -10,8 +10,9 @@ desktop and the game's presentation path is untouched.
 OBS setup (once):
     Sources → + → Browser
     URL:    http://localhost:8788
-    Width:  1920    Height: 1080
-    Done — captions appear bottom-center whenever you talk.
+    Width:  1400    Height: 300
+    Then drag the source anywhere on your canvas — captions hug its bottom
+    edge. (Full-canvas size also works: captions sit bottom-center.)
 
 Run:  "Start Stream Subtitles.bat"   (tray icon = green bubble)
 Edit subs_config.json to change language, mic device, model, or look.
