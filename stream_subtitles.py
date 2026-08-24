@@ -41,13 +41,15 @@ from audio_listener import AudioListener  # local copy - mic capture + whisper
 
 
 class TunedListener(AudioListener):
-    """AudioListener with gamer-vocab hotwords so whisper hears slang right."""
+    """AudioListener with gamer-vocab hotwords and a configurable spoken
+    language, so whisper hears slang right in any language."""
     hotwords = None
+    language = "en"
 
     def _transcribe(self, audio):
         try:
             segments, _info = self.model.transcribe(
-                audio, language="en", beam_size=1, vad_filter=True,
+                audio, language=self.language, beam_size=1, vad_filter=True,
                 hotwords=self.hotwords)
             return " ".join(s.text.strip() for s in segments).strip()
         except Exception as e:
@@ -62,6 +64,7 @@ def log(msg):
 CONFIG_PATH = os.path.join(APP_DIR, "subs_config.json")
 DEFAULTS = {
     "port": 8788,
+    "spoken_lang": "en",       # what the streamer speaks
     "target_lang": "pt",       # what viewers read
     "model": "small.en",       # whisper size; small.en = sharper, still realtime
     "window_seconds": 2.0,     # caption cadence (lower = snappier, choppier)
@@ -157,7 +160,7 @@ def _gtx(text, source, target):
     return "".join(seg[0] for seg in (data[0] or []) if seg and seg[0])
 
 
-LANG_NAMES = {"pt": "Brazilian Portuguese", "es": "Spanish",
+LANG_NAMES = {"en": "English", "pt": "Brazilian Portuguese", "es": "Spanish",
               "fr": "French", "de": "German", "ja": "Japanese",
               "ko": "Korean", "ru": "Russian", "zh": "Chinese"}
 
@@ -166,16 +169,17 @@ ENGINE_URL = "http://localhost:11434"  # local Ollama, or a rented GPU box
 _ollama_state = {"warm": False, "cooldown_until": 0.0}
 
 
-def _ollama_system(target):
+def _ollama_system(target, source="en"):
     lang = LANG_NAMES.get(target, target)
-    base = (f"You translate live stream captions from English to {lang}. "
+    src = LANG_NAMES.get(source, source)
+    base = (f"You translate live stream captions from {src} to {lang}. "
             f"The streamer is a gamer talking casually to viewers. Write natural, "
             f"colloquial {lang} the way a native gamer actually talks. The text "
             "comes from live speech recognition and may contain small errors - "
             "translate the most likely intended meaning. Do not add words or "
             "excitement that are not in the original. Reply with ONLY the "
             "translation.")
-    if target == "pt":
+    if target == "pt" and source == "en":
         base += (" Slang guide: bro/dude=mano; man=cara; chat/guys=galera; "
                  "insane/crazy=absurdo ou bizarro; trash=lixo; cracked=monstro; "
                  "throwing=jogando fora; clip it=clipa isso. Keep these in "
@@ -188,10 +192,11 @@ def _ollama_system(target):
     return base
 
 
-def _ollama(text, target, model, timeout=12):
+def _ollama(text, target, model, timeout=12, source="en"):
     body = json.dumps({
         "model": model, "stream": False,
-        "messages": [{"role": "system", "content": _ollama_system(target)},
+        "messages": [{"role": "system",
+                      "content": _ollama_system(target, source)},
                      {"role": "user", "content": text}],
         "options": {"temperature": 0.2, "num_predict": 150},
         "keep_alive": "2h", "think": False,
@@ -206,7 +211,8 @@ def _ollama(text, target, model, timeout=12):
 def warm_ollama(cfg):
     """Load the LLM into VRAM in the background; Google covers the gap."""
     try:
-        _ollama("Warm up.", cfg["target_lang"], cfg["ollama_model"], timeout=300)
+        _ollama("Warm up.", cfg["target_lang"], cfg["ollama_model"],
+                timeout=300, source=cfg.get("spoken_lang", "en"))
         _ollama_state["warm"] = True
         log(f"ollama {cfg['ollama_model']} warm — best-quality translation active")
     except Exception as e:
@@ -214,18 +220,20 @@ def warm_ollama(cfg):
 
 
 def translate(text, target, cfg=None):
+    source = (cfg or {}).get("spoken_lang", "en")
     if cfg and cfg.get("translator") == "ollama" and _ollama_state["warm"]:
         if time.time() >= _ollama_state["cooldown_until"]:
             try:
-                return _ollama(text, target, cfg["ollama_model"])
+                return _ollama(text, target, cfg["ollama_model"],
+                               source=source)
             except Exception as e:
                 log(f"ollama failed ({e}) — google fallback for 60s")
                 _ollama_state["cooldown_until"] = time.time() + 60
     try:
-        return _clients5(text, "en", target)
+        return _clients5(text, source, target)
     except Exception as e:
         log(f"clients5 failed ({e}), trying gtx")
-        return _gtx(text, "en", target)
+        return _gtx(text, source, target)
 
 
 # ---------------------------------------------------------------- subtitle feed
@@ -390,6 +398,10 @@ def main():
         if len(text) < 2 or text == last_line:
             return
         last_line = text
+        if cfg.get("spoken_lang", "en") == cfg["target_lang"]:
+            store.add(text, text)   # captions-only mode, no translation
+            log(f"CAPTION: {text}")
+            return
         try:
             translated = translate(text, cfg["target_lang"], cfg)
         except Exception as e:
@@ -407,6 +419,12 @@ def main():
         channel=cfg["mic_channel"],
     )
     listener.hotwords = cfg["hotwords"] or None
+    listener.language = cfg.get("spoken_lang", "en")
+    if listener.language != "en" and cfg["model"].endswith(".en"):
+        # English-only whisper can't hear other languages — use multilingual
+        cfg["model"] = cfg["model"][:-3]
+        listener.model_size = cfg["model"]
+        log(f"non-English speaker: whisper model switched to '{cfg['model']}'")
     if not cfg["use_gpu"]:
         # force CPU so the game's GPU is never touched
         from faster_whisper import WhisperModel

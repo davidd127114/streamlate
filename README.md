@@ -2,10 +2,11 @@
 
 Free, local, live translation for streamers.
 
-- **Your voice → subtitles in another language, on your stream.** Speak
-  English, your viewers read Portuguese (or Spanish, French, German, Japanese,
-  Korean, Russian, Chinese) — rendered inside OBS a couple of seconds behind
-  your voice.
+- **Your voice → subtitles in another language, on your stream.** Any
+  direction: speak English and caption into Portuguese, or speak Portuguese
+  (Spanish, French, German, Japanese, Korean, Russian, Chinese…) and caption
+  into English — rendered inside OBS a couple of seconds behind your voice.
+  Same language both ways = plain closed captions.
 - **Your chat → English, for you.** Every non-English chat message translated
   on a click-through in-game overlay and on a phone page you can read from
   your couch. Works with **Twitch, YouTube and Kick** chat — just give it

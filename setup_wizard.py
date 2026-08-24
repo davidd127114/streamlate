@@ -12,9 +12,9 @@ CREATE_NO_WINDOW = 0x08000000
 
 import hardware
 
-LANGS = [("Portuguese (Brazil)", "pt"), ("Spanish", "es"), ("French", "fr"),
-         ("German", "de"), ("Japanese", "ja"), ("Korean", "ko"),
-         ("Russian", "ru"), ("Chinese", "zh")]
+LANGS = [("English", "en"), ("Portuguese (Brazil)", "pt"), ("Spanish", "es"),
+         ("French", "fr"), ("German", "de"), ("Japanese", "ja"),
+         ("Korean", "ko"), ("Russian", "ru"), ("Chinese", "zh")]
 
 
 def _merge_into(path, new_keys):
@@ -29,7 +29,8 @@ def _merge_into(path, new_keys):
         json.dump(cur, f, indent=2)
 
 
-def write_configs(channel, target_lang, mic_device, plan, engine_url):
+def write_configs(channel, target_lang, mic_device, plan, engine_url,
+                  spoken_lang="en"):
     chat = {
         "channel": channel,
         "platform": "auto",
@@ -37,13 +38,17 @@ def write_configs(channel, target_lang, mic_device, plan, engine_url):
         "ollama_model": plan["ollama_model"] or "gemma3:4b",
         "engine_url": engine_url,
     }
+    whisper_model = plan["whisper_model"]
+    if spoken_lang != "en" and whisper_model.endswith(".en"):
+        whisper_model = whisper_model[:-3]   # multilingual variant
     subs = {
+        "spoken_lang": spoken_lang,
         "target_lang": target_lang,
         "mic_device": mic_device,
         "translator": plan["translator"],
         "ollama_model": plan["ollama_model"] or "gemma3:4b",
         "engine_url": engine_url,
-        "model": plan["whisper_model"],
+        "model": whisper_model,
         "use_gpu": plan["use_gpu"],
     }
     _merge_into(os.path.join(APP_DIR, "config.json"), chat)
@@ -90,8 +95,13 @@ def main_gui():
     tk.Entry(r, textvariable=channel_var, width=42,
              font=("Segoe UI", 11)).pack(anchor="w", pady=3)
 
+    r = row("You speak…")
+    spoken_var = tk.StringVar(value=LANGS[0][0])
+    ttk.Combobox(r, textvariable=spoken_var, state="readonly", width=28,
+                 values=[n for n, _ in LANGS]).pack(anchor="w", pady=3)
+
     r = row("Subtitle your voice into…")
-    lang_var = tk.StringVar(value=LANGS[0][0])
+    lang_var = tk.StringVar(value=LANGS[1][0])
     ttk.Combobox(r, textvariable=lang_var, state="readonly", width=28,
                  values=[n for n, _ in LANGS]).pack(anchor="w", pady=3)
 
@@ -145,7 +155,8 @@ def main_gui():
         ch = channel_var.get().strip()
         if not (ch.startswith("@") or "/" in ch):   # plain Twitch name
             ch = ch.lstrip("#").lower()
-        write_configs(ch, lang, mic_idx, plan, url_var.get().strip())
+        write_configs(ch, lang, mic_idx, plan, url_var.get().strip(),
+                      spoken_lang=dict(LANGS)[spoken_var.get()])
         root.destroy()
 
     def save():
