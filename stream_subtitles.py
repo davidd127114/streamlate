@@ -87,6 +87,7 @@ DEFAULTS = {
     # voice-chat translation (Discord etc.) — hears what your PC plays
     "call_translate": False,
     "call_model": "small",       # multilingual whisper for teammates
+    "call_device": "",           # part of an output device name; "" = default
     "call_target": "en",         # language YOU read the bubbles in
     "call_show_english": False,
     "call_silence_rms": 0.003,
@@ -414,6 +415,14 @@ def run_tray(cfg):
 
     from i18n import tr
 
+    def open_settings(icon, item):
+        import subprocess
+        subprocess.run([sys.executable,
+                        os.path.join(APP_DIR, "setup_wizard.py")], cwd=APP_DIR)
+        subprocess.Popen([sys.executable,
+                          os.path.join(APP_DIR, "stream_mode_launcher.py")],
+                         cwd=APP_DIR)
+
     def toggle_call(icon, item):
         cfg["call_translate"] = not cfg.get("call_translate")
         try:
@@ -434,6 +443,7 @@ def run_tray(cfg):
             pystray.MenuItem(tr("preview"), open_page),
             pystray.MenuItem(tr("calltr"), toggle_call,
                              checked=lambda item: bool(cfg.get("call_translate"))),
+            pystray.MenuItem(tr("settings"), open_settings),
             pystray.MenuItem(tr("exit"), quit_app),
         ))
     icon.run()

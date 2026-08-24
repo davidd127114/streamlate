@@ -73,10 +73,21 @@ class CallListener(threading.Thread):
         gate = float(self.cfg.get("call_silence_rms", 0.003))
         last_text = ""
 
+        want = (self.cfg.get("call_device") or "").strip().lower()
         while not self.stop_ev.is_set():
             try:
                 with pa.PyAudio() as p:
-                    lb = p.get_default_wasapi_loopback()
+                    lb = None
+                    if want:
+                        for d in p.get_loopback_device_info_generator():
+                            if want in d["name"].lower():
+                                lb = d
+                                break
+                        if lb is None:
+                            self.log(f"call translate: no output device "
+                                     f"matching '{want}' — using default")
+                    if lb is None:
+                        lb = p.get_default_wasapi_loopback()
                     rate = int(lb["defaultSampleRate"])
                     ch = max(1, lb["maxInputChannels"])
                     frames = int(rate * 0.25)

@@ -953,6 +953,8 @@ class App(tk.Tk):
             pystray.MenuItem(tr("corner"), put("corner")),
             pystray.MenuItem(tr("autohide"), put("autohide"),
                              checked=lambda item: bool(self.cfg["overlay_autohide"])),
+            pystray.MenuItem(tr("settings"),
+                             lambda icon, item: open_settings_and_restart()),
             pystray.MenuItem(tr("exit"), put("exit")),
         )
         self._tray_icon = pystray.Icon(
@@ -1241,6 +1243,22 @@ def _drain_ui_queue(ui_q):
             log("status: " + item[1])
 
 
+def open_settings_and_restart():
+    """Re-run the setup wizard, then relaunch the whole stack so every
+    change (mic, language, channel) takes effect. Wizard merges configs,
+    so tuned settings survive."""
+    import subprocess
+    try:
+        subprocess.run([sys.executable,
+                        os.path.join(APP_DIR, "setup_wizard.py")],
+                       cwd=APP_DIR)
+        subprocess.Popen([sys.executable,
+                          os.path.join(APP_DIR, "stream_mode_launcher.py")],
+                         cwd=APP_DIR)
+    except Exception as e:
+        log(f"settings relaunch failed: {e}")
+
+
 def _tray_image():
     from PIL import Image, ImageDraw
     img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
@@ -1282,6 +1300,8 @@ def _run_tray(cfg, url):
             pystray.MenuItem(f"#{cfg['channel']} — {url}", None, enabled=False),
             pystray.MenuItem(tr("open_phone"), open_page, default=True),
             pystray.MenuItem(tr("show_qr"), show_qr),
+            pystray.MenuItem(tr("settings"),
+                             lambda icon, item: open_settings_and_restart()),
             pystray.MenuItem(tr("exit"), quit_app),
         ),
     )
