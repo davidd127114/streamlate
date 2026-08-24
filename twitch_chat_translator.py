@@ -838,6 +838,11 @@ class ExclusiveHTTPServer(ThreadingHTTPServer):
 def start_phone_server(history, cfg, ui_q=None):
     """Serve the phone page on the LAN. Returns (port, server) or (None, None)."""
     base = int(cfg.get("http_port", 8765))
+    try:
+        from port_guard import free_port
+        free_port(base, "twitch_chat_translator", log)
+    except Exception:
+        pass
     for port in range(base, base + 6):
         try:
             handler = type("BoundHandler", (PhoneHandler,),

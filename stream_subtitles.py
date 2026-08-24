@@ -598,8 +598,20 @@ def main():
     class ExclusiveServer(ThreadingHTTPServer):
         allow_reuse_address = False   # never share a port with another copy
 
+    from port_guard import free_port
+    free_port(int(cfg["port"]), "stream_subtitles", log)
     handler = type("BoundSubs", (SubsHandler,), {"store": store, "cfg": cfg})
-    srv = ExclusiveServer(("127.0.0.1", cfg["port"]), handler)
+    srv = None
+    for attempt in range(3):
+        try:
+            srv = ExclusiveServer(("127.0.0.1", cfg["port"]), handler)
+            break
+        except OSError as e:
+            log(f"caption port bind failed ({e}) — retry {attempt + 1}/3")
+            time.sleep(4)
+    if srv is None:
+        log("FATAL: caption port unavailable — is another app on 8788?")
+        raise SystemExit(1)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     log(f"OBS captions page: http://localhost:{cfg['port']}")
 
