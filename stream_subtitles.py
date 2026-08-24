@@ -91,34 +91,8 @@ DEFAULTS = {
     "call_target": "en",         # language YOU read the bubbles in
     "call_show_english": False,
     "call_silence_rms": 0.003,
-    "game_mode": False,          # free the GPU entirely: google + CPU whisper
+    "quality": "auto",           # auto | light | tiny | zero — see quality.py
 }
-
-
-def apply_game_mode(cfg):
-    """Game mode: zero VRAM. Google translation, small CPU whisper."""
-    if not cfg.get("game_mode"):
-        return cfg
-    cfg["translator"] = "google"
-    cfg["use_gpu"] = False
-    cfg["model"] = "base.en" if cfg.get("spoken_lang", "en") == "en" else "base"
-    cfg["call_model"] = "base"
-    log("game mode ON: google engine + CPU whisper (GPU untouched)")
-    return cfg
-
-
-def unload_ollama(cfg):
-    """Evict the LLM from VRAM immediately (keep_alive 0)."""
-    for m in {cfg.get("ollama_model"), "qwen3.8:27b"} - {None, ""}:
-        try:
-            body = json.dumps({"model": m, "keep_alive": 0}).encode()
-            req = urllib.request.Request(
-                (cfg.get("engine_url") or "http://localhost:11434")
-                + "/api/generate", data=body,
-                headers={"Content-Type": "application/json"})
-            urllib.request.urlopen(req, timeout=10).read()
-        except Exception:
-            pass
 
 
 def load_config():
@@ -442,24 +416,24 @@ def run_tray(cfg):
 
     from i18n import tr
 
-    def toggle_game_mode(icon, item):
-        import subprocess
-        on = not cfg.get("game_mode")
-        for path in (CONFIG_PATH,
-                     os.path.join(APP_DIR, "config.json")):
-            try:
-                with open(path, encoding="utf-8-sig") as f:
-                    c = json.load(f)
-            except (OSError, ValueError):
-                c = {}
-            c["game_mode"] = on
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(c, f, indent=2)
-        if on:
-            unload_ollama(cfg)   # free the VRAM right now
-        subprocess.Popen([sys.executable,
-                          os.path.join(APP_DIR, "stream_mode_launcher.py")],
-                         cwd=APP_DIR)
+    from quality import set_quality
+
+    def pick_quality(tier):
+        return lambda icon, item: set_quality(tier, APP_DIR, ENGINE_URL, log)
+
+    def q_checked(tier):
+        return lambda item: cfg.get("quality", "auto") == tier
+
+    quality_menu = pystray.Menu(
+        pystray.MenuItem(tr("q_auto"), pick_quality("auto"),
+                         radio=True, checked=q_checked("auto")),
+        pystray.MenuItem(tr("q_light"), pick_quality("light"),
+                         radio=True, checked=q_checked("light")),
+        pystray.MenuItem(tr("q_tiny"), pick_quality("tiny"),
+                         radio=True, checked=q_checked("tiny")),
+        pystray.MenuItem(tr("q_zero"), pick_quality("zero"),
+                         radio=True, checked=q_checked("zero")),
+    )
 
     def open_settings(icon, item):
         import subprocess
@@ -489,8 +463,7 @@ def run_tray(cfg):
             pystray.MenuItem(tr("preview"), open_page),
             pystray.MenuItem(tr("calltr"), toggle_call,
                              checked=lambda item: bool(cfg.get("call_translate"))),
-            pystray.MenuItem(tr("gamemode"), toggle_game_mode,
-                             checked=lambda item: bool(cfg.get("game_mode"))),
+            pystray.MenuItem(tr("q_menu"), quality_menu),
             pystray.MenuItem(tr("settings"), open_settings),
             pystray.MenuItem(tr("exit"), quit_app),
         ))
@@ -501,7 +474,10 @@ def run_tray(cfg):
 def main():
     global ENGINE_URL
     lower_priority()
-    cfg = apply_game_mode(load_config())
+    from quality import apply_quality
+    cfg = apply_quality(load_config(), for_subs=True)
+    if cfg["quality"] != "auto":
+        log(f"quality tier: {cfg['quality']}")
     ENGINE_URL = cfg.get("engine_url") or ENGINE_URL
     if cfg["pin_efficiency_cores"]:
         pin_to_efficiency_cores()

@@ -59,11 +59,12 @@ field, and your PC does almost nothing. ~$0.25/hr buys you the best tier.
 
 ## Playing something heavy?
 
-**Game mode** (in every tray menu) instantly frees your GPU: the AI model is
-unloaded from VRAM on the spot and Streamlate switches to the free web
-engine + CPU speech recognition. Everything keeps working — translation
-quality is just plainer and captions a touch slower. Click it again after
-the game to get full quality back. VRAM cost in game mode: **zero**.
+Every tray menu has **Translation quality / GPU use** — a four-step dial:
+**Best** (the auto-picked tier), **Lighter** (~8 GB), **Tiny** (~3 GB), or
+**Zero GPU** (free web engine + CPU speech). Switching evicts the old model
+from VRAM immediately, downloads the new tier in the background if you've
+never used it (translation keeps working meanwhile), and everything else
+stays the same. Pick whatever your game leaves room for; switch back after.
 
 ## Discord / voice-chat translation
 
