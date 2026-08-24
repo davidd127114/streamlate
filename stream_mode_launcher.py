@@ -46,7 +46,21 @@ def splash(lines, accent="#a970ff", ms=4200):
     root.mainloop()
 
 
+def make_share_qr():
+    """QR of the Streamlate download page — drag it into OBS to show viewers
+    where to get the tool."""
+    path = os.path.join(APP_DIR, "streamlate_link_qr.png")
+    if os.path.exists(path):
+        return
+    try:
+        import qrcode
+        qrcode.make("https://github.com/davidd127114/streamlate").save(path)
+    except Exception:
+        pass
+
+
 def main():
+    make_share_qr()
     updated = False
     try:
         from updater import maybe_update

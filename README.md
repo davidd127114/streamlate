@@ -53,8 +53,11 @@ field, and your PC does almost nothing. ~$0.25/hr buys you the best tier.
   it anywhere on your canvas like any other source**; captions hug its
   bottom edge. (A full-canvas-sized source also works: captions sit
   bottom-center of the screen.)
-- Phone: open the URL shown in the tray tooltip (same Wi-Fi), or scan
-  `phone_qr.png`.
+- Phone: right-click either tray icon → **Show phone QR code** and scan it
+  (same Wi-Fi), or open the URL shown in the tray tooltip.
+- Want to tell your viewers about Streamlate? `streamlate_link_qr.png` in
+  the app folder is a QR of the download page — drag it into OBS as an
+  image source whenever you feel like sharing.
 - **`Streamlate OFF`** (gray icon): stops everything.
 
 ## Playing something heavy?

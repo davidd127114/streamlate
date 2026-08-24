@@ -641,6 +641,15 @@ def start_phone_server(history, cfg, ui_q=None):
     return None, None
 
 
+def make_phone_qr(url):
+    """Refresh phone_qr.png for the current LAN address."""
+    try:
+        import qrcode
+        qrcode.make(url).save(os.path.join(APP_DIR, "phone_qr.png"))
+    except Exception as e:
+        log(f"qr generation failed: {e}")
+
+
 def lan_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -803,6 +812,9 @@ class App(tk.Tk):
         port, self.http_srv = start_phone_server(self.history, self.cfg,
                                                  self.ui_q)
         self.phone_url = f"http://{lan_ip()}:{port}" if port else ""
+        if self.phone_url:
+            threading.Thread(target=make_phone_qr, args=(self.phone_url,),
+                             daemon=True).start()
         start_viewer_poller(self.history, self.cfg)
         threading.Thread(target=warm_chat_ollama, args=(self.cfg,),
                          daemon=True).start()
@@ -944,10 +956,17 @@ class App(tk.Tk):
             import webbrowser
             webbrowser.open(self.phone_url)
 
+        def show_qr(icon, item):
+            try:
+                os.startfile(os.path.join(APP_DIR, "phone_qr.png"))
+            except OSError:
+                pass
+
         menu = pystray.Menu(
             pystray.MenuItem(f"#{self.cfg['channel']} — {self.phone_url}",
                              None, enabled=False),
             pystray.MenuItem(tr("open_phone"), open_page),
+            pystray.MenuItem(tr("show_qr"), show_qr),
             pystray.MenuItem(tr("bigger"), put("font+")),
             pystray.MenuItem(tr("smaller"), put("font-")),
             pystray.MenuItem(tr("orig"), put("orig")),
@@ -1353,11 +1372,7 @@ def run_headless(cfg):
     threading.Thread(target=warm_chat_ollama, args=(cfg,), daemon=True).start()
     url = f"http://{lan_ip()}:{port}"
     log(f"headless: #{cfg['channel']} → {url}")
-    try:  # refresh the QR in case the PC's LAN IP changed
-        import qrcode
-        qrcode.make(url).save(os.path.join(APP_DIR, "phone_qr.png"))
-    except Exception:
-        pass
+    make_phone_qr(url)   # refresh in case the PC's LAN IP changed
     make_reader(cfg, raw_q, ui_q).start()
     threading.Thread(target=_drain_ui_queue, args=(ui_q,), daemon=True).start()
     _run_tray(cfg, url)
