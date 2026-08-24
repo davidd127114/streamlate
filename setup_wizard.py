@@ -119,7 +119,8 @@ def main_gui():
                                "this can take a while…")
             root.update_idletasks()
             try:
-                subprocess.run(["ollama", "pull", model], timeout=7200,
+                exe = hardware.ollama_exe() or "ollama"
+                subprocess.run([exe, "pull", model], timeout=7200,
                                creationflags=CREATE_NO_WINDOW)
             except Exception:
                 plan["translator"] = "google"  # still works, just simpler engine

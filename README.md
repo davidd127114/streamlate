@@ -31,13 +31,13 @@ Every tier works — bigger hardware just sounds more natural.
 (RunPod, Vast.ai…), put its URL in the setup wizard's "Remote engine URL"
 field, and your PC does almost nothing. ~$0.25/hr buys you the best tier.
 
-## Install (Windows)
+## Install (Windows) — one file does everything
 
-1. Install [Python 3.11+](https://python.org) (tick "Add to PATH") and,
-   for AI-quality translation, [Ollama](https://ollama.com).
-2. Download this folder, double-click **`install.bat`** once.
-3. Double-click **`Stream Translator`** — the setup wizard asks your channel,
-   language and mic, detects your hardware, downloads the right model, done.
+1. Download this folder (green **Code → Download ZIP** button, unzip anywhere).
+2. Double-click **`install.bat`** once. It automatically installs Python and
+   the Ollama AI engine if you don't have them (silent, no clicking through
+   installers), sets up the app, puts the icons on your desktop, and opens
+   the setup wizard — your channel, your language, your mic, done.
 
 ## Use
 

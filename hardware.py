@@ -4,6 +4,7 @@ The whole point: the user never chooses a model. We look at their GPU and
 pick the biggest brain that fits; with no usable GPU we fall back to the
 free Google web engine, which needs nothing at all.
 """
+import os
 import subprocess
 
 CREATE_NO_WINDOW = 0x08000000
@@ -29,18 +30,32 @@ def nvidia_vram_gb():
         return 0.0
 
 
+def ollama_exe():
+    """Path to a working ollama binary — works even right after a silent
+    install, before PATH refreshes."""
+    local = os.path.join(os.environ.get("LOCALAPPDATA", ""),
+                         "Programs", "Ollama", "ollama.exe")
+    for cand in ("ollama", local):
+        try:
+            r = subprocess.run([cand, "--version"], capture_output=True,
+                               timeout=10, creationflags=CREATE_NO_WINDOW)
+            if r.returncode == 0:
+                return cand
+        except Exception:
+            pass
+    return None
+
+
 def ollama_available():
-    try:
-        r = subprocess.run(["ollama", "--version"], capture_output=True,
-                           timeout=10, creationflags=CREATE_NO_WINDOW)
-        return r.returncode == 0
-    except Exception:
-        return False
+    return ollama_exe() is not None
 
 
 def installed_ollama_models():
+    exe = ollama_exe()
+    if not exe:
+        return []
     try:
-        r = subprocess.run(["ollama", "list"], capture_output=True, text=True,
+        r = subprocess.run([exe, "list"], capture_output=True, text=True,
                            timeout=15, creationflags=CREATE_NO_WINDOW)
         return [line.split()[0] for line in r.stdout.splitlines()[1:]
                 if line.strip()]
