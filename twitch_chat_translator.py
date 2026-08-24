@@ -1074,10 +1074,35 @@ class App(tk.Tk):
 
     def _drag_start(self, e):
         self._drag_off = (e.x_root - self.winfo_x(), e.y_root - self.winfo_y())
+        # press near the bottom-right corner = resize instead of move
+        self._resizing = (e.x_root > self.winfo_x() + self.winfo_width() - 30
+                          and e.y_root > self.winfo_y() + self.winfo_height() - 30)
 
     def _drag_move(self, e):
-        self.geometry(f"+{e.x_root - self._drag_off[0]}"
-                      f"+{e.y_root - self._drag_off[1]}")
+        if getattr(self, "_resizing", False):
+            w = max(280, e.x_root - self.winfo_x())
+            h = max(180, e.y_root - self.winfo_y())
+            self.geometry(f"{w}x{h}")
+        else:
+            self.geometry(f"+{e.x_root - self._drag_off[0]}"
+                          f"+{e.y_root - self._drag_off[1]}")
+
+    def _drag_release(self, _e):
+        if getattr(self, "_resizing", False):
+            self._resizing = False
+            self._load_overlay_bg()     # rescale the background to the new box
+            self._redraw_overlay()
+            self._draw_grip()
+
+    def _draw_grip(self):
+        self.canvas.delete("grip")
+        if self.overlay_locked:
+            return
+        self.update_idletasks()
+        w = self.canvas.winfo_width()
+        h = self.canvas.winfo_height()
+        self.canvas.create_polygon(w - 26, h, w, h, w, h - 26,
+                                   fill="#a970ff", outline="", tags="grip")
 
     def _toggle_move_mode(self):
         self.overlay_locked = not self.overlay_locked
@@ -1088,13 +1113,19 @@ class App(tk.Tk):
             for w in (self.canvas, self.viewer_label):
                 w.bind("<Button-1>", self._drag_start)
                 w.bind("<B1-Motion>", self._drag_move)
+                w.bind("<ButtonRelease-1>", self._drag_release)
             self.viewer_label.configure(text=tr("drag_hint"))
+            self._draw_grip()
         else:
             for w in (self.canvas, self.viewer_label):
                 w.unbind("<Button-1>")
                 w.unbind("<B1-Motion>")
+                w.unbind("<ButtonRelease-1>")
             self.canvas.configure(highlightthickness=0)
+            self.canvas.delete("grip")
             self.cfg["overlay_pos"] = f"+{self.winfo_x()}+{self.winfo_y()}"
+            self.cfg["overlay_size"] = (f"{self.winfo_width()}"
+                                        f"x{self.winfo_height()}")
             save_config(self.cfg)
             self._apply_overlay_styles()
             self._refresh_viewers()
