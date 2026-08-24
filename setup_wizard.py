@@ -11,6 +11,7 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 CREATE_NO_WINDOW = 0x08000000
 
 import hardware
+from i18n import tr
 
 LANGS = [("English", "en"), ("Portuguese (Brazil)", "pt"), ("Spanish", "es"),
          ("French", "fr"), ("German", "de"), ("Japanese", "ja"),
@@ -75,7 +76,7 @@ def main_gui():
 
     plan = hardware.pick()
     root = tk.Tk()
-    root.title("Streamlate — Setup")
+    root.title(tr("wiz_title"))
     root.configure(bg="#141417")
     root.resizable(False, False)
     FG, BG, ACC = "#e8e8ee", "#141417", "#a970ff"
@@ -90,39 +91,39 @@ def main_gui():
     tk.Label(root, text="Streamlate", bg=BG, fg=ACC,
              font=("Segoe UI", 16, "bold"), pady=10).pack()
 
-    r = row("Your channel  (Twitch name, YouTube @handle, or kick.com URL)")
+    r = row(tr("wiz_channel"))
     channel_var = tk.StringVar()
     tk.Entry(r, textvariable=channel_var, width=42,
              font=("Segoe UI", 11)).pack(anchor="w", pady=3)
 
-    r = row("You speak…")
+    r = row(tr("wiz_speak"))
     spoken_var = tk.StringVar(value=LANGS[0][0])
     ttk.Combobox(r, textvariable=spoken_var, state="readonly", width=28,
                  values=[n for n, _ in LANGS]).pack(anchor="w", pady=3)
 
-    r = row("Subtitle your voice into…")
+    r = row(tr("wiz_caption"))
     lang_var = tk.StringVar(value=LANGS[1][0])
     ttk.Combobox(r, textvariable=lang_var, state="readonly", width=28,
                  values=[n for n, _ in LANGS]).pack(anchor="w", pady=3)
 
-    r = row("Microphone")
+    r = row(tr("wiz_mic"))
     mics = list_mics()
-    mic_var = tk.StringVar(value="System default (auto)")
+    mic_var = tk.StringVar(value=tr("wiz_mic_default"))
     ttk.Combobox(r, textvariable=mic_var, state="readonly", width=48,
-                 values=["System default (auto)"] + mics).pack(anchor="w", pady=3)
+                 values=[tr("wiz_mic_default")] + mics).pack(anchor="w", pady=3)
 
-    r = row("Translation engine (detected automatically)")
+    r = row(tr("wiz_engine"))
     if plan["translator"] == "ollama":
         engine_txt = (f"GPU: {plan['vram_gb']} GB → {plan['ollama_model']} "
                       f"({plan['note']})")
     else:
         engine_txt = (f"GPU: {plan['vram_gb']} GB → {plan['note']}"
                       + ("" if plan["ollama_installed"] or plan["vram_gb"] < 6
-                         else "\nTip: install Ollama to unlock AI-quality translation"))
+                         else "\n" + tr("wiz_engine_tip")))
     tk.Label(r, text=engine_txt, bg=BG, fg="#9adf9e", justify="left",
              font=("Segoe UI", 10)).pack(anchor="w", pady=3)
 
-    r = row("Remote engine URL (optional — rented GPU / cloud box)")
+    r = row(tr("wiz_url"))
     url_var = tk.StringVar(value="http://localhost:11434")
     tk.Entry(r, textvariable=url_var, width=42,
              font=("Segoe UI", 10)).pack(anchor="w", pady=3)
@@ -135,8 +136,8 @@ def main_gui():
         need_pull = (plan["translator"] == "ollama"
                      and model not in hardware.installed_ollama_models())
         if need_pull:
-            status.config(text=f"Downloading {model} ({plan['download']}) — "
-                               "this can take a while…")
+            status.config(text=tr("wiz_downloading", model=model,
+                                  size=plan["download"]))
             root.update_idletasks()
             try:
                 exe = hardware.ollama_exe() or "ollama"
@@ -161,11 +162,11 @@ def main_gui():
 
     def save():
         if not channel_var.get().strip():
-            status.config(text="Enter your Twitch channel name first")
+            status.config(text=tr("wiz_need_channel"))
             return
         threading.Thread(target=pull_then_save, daemon=True).start()
 
-    tk.Button(root, text="Save and finish", command=save, bg=ACC, fg="white",
+    tk.Button(root, text=tr("wiz_save"), command=save, bg=ACC, fg="white",
               font=("Segoe UI", 11, "bold"), bd=0, padx=24,
               pady=8).pack(pady=16)
     root.mainloop()

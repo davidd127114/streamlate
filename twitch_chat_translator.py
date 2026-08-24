@@ -38,6 +38,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import tkinter as tk
 from tkinter import simpledialog
 
+from i18n import tr
+
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(APP_DIR, "config.json")
 LOG_PATH = os.path.join(APP_DIR, "translator.log")
@@ -823,8 +825,7 @@ class App(tk.Tk):
             for w in (self.canvas, self.viewer_label):
                 w.bind("<Button-1>", self._drag_start)
                 w.bind("<B1-Motion>", self._drag_move)
-            self.viewer_label.configure(
-                text="◇ drag me — tray → Move mode again to lock")
+            self.viewer_label.configure(text=tr("drag_hint"))
         else:
             for w in (self.canvas, self.viewer_label):
                 w.unbind("<Button-1>")
@@ -911,18 +912,18 @@ class App(tk.Tk):
         menu = pystray.Menu(
             pystray.MenuItem(f"#{self.cfg['channel']} — {self.phone_url}",
                              None, enabled=False),
-            pystray.MenuItem("Open phone page in browser", open_page),
-            pystray.MenuItem("Bigger text", put("font+")),
-            pystray.MenuItem("Smaller text", put("font-")),
-            pystray.MenuItem("Show/hide originals", put("orig")),
-            pystray.MenuItem("Change background image…", put("bg")),
-            pystray.MenuItem("Remove background image", put("bgoff")),
-            pystray.MenuItem("Move mode (drag the overlay)", put("movemode"),
+            pystray.MenuItem(tr("open_phone"), open_page),
+            pystray.MenuItem(tr("bigger"), put("font+")),
+            pystray.MenuItem(tr("smaller"), put("font-")),
+            pystray.MenuItem(tr("orig"), put("orig")),
+            pystray.MenuItem(tr("bg"), put("bg")),
+            pystray.MenuItem(tr("bgoff"), put("bgoff")),
+            pystray.MenuItem(tr("movemode"), put("movemode"),
                              checked=lambda item: not self.overlay_locked),
-            pystray.MenuItem("Snap to next corner", put("corner")),
-            pystray.MenuItem("Auto-hide when chat is quiet", put("autohide"),
+            pystray.MenuItem(tr("corner"), put("corner")),
+            pystray.MenuItem(tr("autohide"), put("autohide"),
                              checked=lambda item: bool(self.cfg["overlay_autohide"])),
-            pystray.MenuItem("Exit overlay", put("exit")),
+            pystray.MenuItem(tr("exit"), put("exit")),
         )
         self._tray_icon = pystray.Icon(
             "streamlate_overlay", _tray_image(),
@@ -1249,9 +1250,9 @@ def _run_tray(cfg, url):
         f"Streamlate — #{cfg['channel']} · {url}",
         menu=pystray.Menu(
             pystray.MenuItem(f"#{cfg['channel']} — {url}", None, enabled=False),
-            pystray.MenuItem("Open phone page in browser", open_page, default=True),
-            pystray.MenuItem("Show phone QR code", show_qr),
-            pystray.MenuItem("Exit", quit_app),
+            pystray.MenuItem(tr("open_phone"), open_page, default=True),
+            pystray.MenuItem(tr("show_qr"), show_qr),
+            pystray.MenuItem(tr("exit"), quit_app),
         ),
     )
     icon.run()

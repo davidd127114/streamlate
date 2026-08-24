@@ -47,6 +47,12 @@ def splash(lines, accent="#a970ff", ms=4200):
 
 
 def main():
+    updated = False
+    try:
+        from updater import maybe_update
+        updated = maybe_update()
+    except Exception:
+        pass
     if not os.path.exists(os.path.join(APP_DIR, "config.json")):
         subprocess.run([sys.executable,
                         os.path.join(APP_DIR, "setup_wizard.py")], cwd=APP_DIR)
@@ -66,12 +72,11 @@ def main():
     subprocess.Popen(
         [pyw, os.path.join(APP_DIR, "stream_subtitles.py")],
         cwd=APP_DIR, creationflags=CREATE_NO_WINDOW)
-    splash([
-        "Streamlate — starting",
-        "🟣  Chat overlay + phone page",
-        "🟢  PT subtitles for OBS",
-        "Start OBS and go live — everything else is automatic.",
-    ])
+    from i18n import tr
+    lines = [tr("starting"), tr("line_chat"), tr("line_subs"), tr("line_obs")]
+    if updated:
+        lines.append(tr("updated"))
+    splash(lines)
 
 
 if __name__ == "__main__":

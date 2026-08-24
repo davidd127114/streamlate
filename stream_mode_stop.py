@@ -14,6 +14,6 @@ except Exception:
     pass
 
 from stream_mode_launcher import splash
-splash(["Streamlate — stopped",
-        "Chat overlay, phone page and subtitles are off."],
+from i18n import tr
+splash([tr("stopped_title"), tr("stopped_body")],
        accent="#8a8a92", ms=2800)

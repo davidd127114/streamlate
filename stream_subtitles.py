@@ -362,13 +362,14 @@ def run_tray(cfg):
     def quit_app(icon, item):
         icon.stop()
 
+    from i18n import tr
     icon = pystray.Icon(
-        "stream_subtitles", img,
-        f"Stream Subtitles → {cfg['target_lang'].upper()} · OBS source: {url}",
+        "streamlate_subs", img,
+        f"Streamlate → {cfg['target_lang'].upper()} · OBS: {url}",
         menu=pystray.Menu(
-            pystray.MenuItem(f"OBS Browser Source: {url}", None, enabled=False),
-            pystray.MenuItem("Preview captions page", open_page),
-            pystray.MenuItem("Exit", quit_app),
+            pystray.MenuItem(f"{tr('obs_source')}: {url}", None, enabled=False),
+            pystray.MenuItem(tr("preview"), open_page),
+            pystray.MenuItem(tr("exit"), quit_app),
         ))
     icon.run()
     os._exit(0)

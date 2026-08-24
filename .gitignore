@@ -5,3 +5,4 @@ phone_qr.png
 __pycache__/
 *.pyc
 background.*
+.version
