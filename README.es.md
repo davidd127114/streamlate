@@ -1,6 +1,6 @@
 # Streamlate
 
-**Español** · [English](README.md) · [Português (Brasil)](README.pt-BR.md) · [עברית](README.he.md)
+**Español** · [English](README.md) · [Português](README.pt-BR.md) · [עברית](README.he.md) · [Polski](README.pl.md) · [日本語](README.ja.md) · [中文](README.zh.md) · [한국어](README.ko.md)
 
 Traducción en vivo, gratuita y local, para streamers.
 

@@ -1,6 +1,6 @@
 # Streamlate
 
-**עברית** · [English](README.md) · [Português (Brasil)](README.pt-BR.md) · [Español](README.es.md)
+**עברית** · [English](README.md) · [Português](README.pt-BR.md) · [Español](README.es.md) · [Polski](README.pl.md) · [日本語](README.ja.md) · [中文](README.zh.md) · [한국어](README.ko.md)
 
 תרגום חי, חינמי ומקומי לסטרימרים.
 

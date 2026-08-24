@@ -172,10 +172,10 @@ def _gtx(text, source, target):
 LANG_NAMES = {"en": "English", "pt": "Brazilian Portuguese", "es": "Spanish",
               "fr": "French", "de": "German", "ja": "Japanese",
               "ko": "Korean", "ru": "Russian", "zh": "Chinese",
-              "he": "Hebrew"}
+              "he": "Hebrew", "pl": "Polish"}
 
 # languages where whisper's 'small' struggles — bump to 'medium' on GPU
-HARD_SPEECH = {"he", "ja", "ko", "zh", "ru"}
+HARD_SPEECH = {"he", "ja", "ko", "zh", "ru", "pl"}
 
 ENGINE_URL = "http://localhost:11434"  # local Ollama, or a rented GPU box
 

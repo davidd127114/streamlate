@@ -14,11 +14,12 @@ import hardware
 from i18n import tr
 
 LANGS = [("English", "en"), ("Portuguese (Brazil)", "pt"), ("Spanish", "es"),
-         ("Hebrew — עברית", "he"), ("French", "fr"), ("German", "de"),
-         ("Japanese", "ja"), ("Korean", "ko"), ("Russian", "ru"),
-         ("Chinese", "zh")]
+         ("Hebrew — עברית", "he"), ("Polish — Polski", "pl"),
+         ("French", "fr"), ("German", "de"), ("Japanese — 日本語", "ja"),
+         ("Korean — 한국어", "ko"), ("Russian", "ru"),
+         ("Chinese — 中文", "zh")]
 
-HARD_SPEECH = {"he", "ja", "ko", "zh", "ru"}
+HARD_SPEECH = {"he", "ja", "ko", "zh", "ru", "pl"}
 
 
 def _merge_into(path, new_keys):
@@ -237,8 +238,9 @@ def main_gui():
              font=("Segoe UI", 9)).pack(anchor="w", pady=3)
 
     r = row(tr("wiz_ui_lang"), adv)
-    UI_LANGS = [("Auto", "auto"), ("English", "en"),
-                ("Português", "pt"), ("Español", "es"), ("עברית", "he")]
+    UI_LANGS = [("Auto", "auto"), ("English", "en"), ("Português", "pt"),
+                ("Español", "es"), ("עברית", "he"), ("Polski", "pl"),
+                ("日本語", "ja"), ("中文", "zh"), ("한국어", "ko")]
     ui2name = {c: n for n, c in UI_LANGS}
     ui_var = tk.StringVar(
         value=ui2name.get(chat_cfg.get("ui_lang", "auto"), "Auto"))

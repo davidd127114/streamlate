@@ -137,6 +137,10 @@ SLANG = {
     # German
     "vlt": "vielleicht", "kp": "kein Plan", "ka": "keine Ahnung",
     "hdl": "hab dich lieb", "gn8": "gute Nacht",
+    # Polish
+    "nwm": "nie wiem", "wgl": "w ogóle", "spk": "spoko", "cb": "ciebie",
+    "sb": "sobie", "zw": "zaraz wracam", "jj": "już jestem",
+    "nara": "na razie", "pzdr": "pozdrawiam", "wgle": "w ogóle",
 }
 _slang_re = re.compile(
     r"\b(" + "|".join(sorted(SLANG, key=len, reverse=True)) + r")\b",
@@ -150,8 +154,8 @@ LAUGH_RE = re.compile(
     r"(?i)^\W*(?:"
     r"k{2,}|(?:ja){2,}j*|(?:js){2,}s*|(?:rs){2,}|(?:ha){2,}h*|(?:he){2,}h*|"
     r"(?:hue){2,}|(?:xa){2,}x*|x+d+|l+o+l+|lmf?ao+|kek(?:w|a)?|omegalul|lul+|"
-    r"w{3,}|ｗ{2,}|草+|ㅋ{2,}|ㅎ{2,}|(?:ах){2,}х*|(?:ха){2,}х*|(?:хе){2,}х*|"
-    r"ח{2,}"
+    r"w{3,}|ｗ{2,}|草+|笑+|哈{2,}|嘿{2,}|ㅋ{2,}|ㅎ{2,}|"
+    r"(?:ах){2,}х*|(?:ха){2,}х*|(?:хе){2,}х*|ח{2,}|(?:xd){2,}"
     r")\W*$"
 )
 

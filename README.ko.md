@@ -1,0 +1,44 @@
+# Streamlate
+
+**한국어** · [English](README.md) · [Português](README.pt-BR.md) · [Español](README.es.md) · [עברית](README.he.md) · [Polski](README.pl.md) · [日本語](README.ja.md) · [中文](README.zh.md)
+
+스트리머를 위한 무료 · 로컬 · 실시간 번역.
+
+- **내 목소리 → 방송 화면의 외국어 자막.** 어느 방향이든 가능: 한국어로
+  말하면 영어 자막, 영어로 말하면 한국어 자막 — OBS 안에서 약 2초 뒤에
+  표시됩니다. 같은 언어끼리면 일반 자막(접근성)이 됩니다.
+- **시청자 채팅 → 내 언어로.** 모든 외국어 메시지가 게임 내 투명
+  오버레이와 휴대폰 페이지에 번역되어 나타납니다. **Twitch · YouTube ·
+  Kick** 채팅 지원.
+- **계정 불필요, API 키 불필요, 클라우드 불필요.** 모든 것이 내 PC에서
+  돌아갑니다.
+
+## 내 PC에 자동 최적화
+
+| GPU | 선택되는 엔진 | 품질 |
+|---|---|---|
+| 20 GB+ (4090/5090…) | Qwen 27B 로컬 | 최고 |
+| 11–20 GB | Gemma 12B 로컬 | 훌륭함 |
+| 6–11 GB | Gemma 4B 로컬 | 좋음 |
+| 그 이하 / 없음 | 무료 Google 엔진 | 충분 — GPU 사용 안 함 |
+
+한국어 음성 인식에는 자동으로 더 강한 모델(medium)이 사용됩니다.
+
+## 설치 (Windows) — 파일 하나, 더블클릭 한 번
+
+### ⬇️ [StreamlateSetup.exe 다운로드](https://github.com/davidd127114/streamlate/releases/latest/download/StreamlateSetup.exe)
+
+실행만 하면 됩니다. Python, Ollama AI 엔진, 앱을 알아서 설치하고 바탕화면에
+**Streamlate** 아이콘을 만든 뒤 설정 마법사를 엽니다 — 채널, 언어,
+마이크만 고르면 끝.
+
+## 사용법
+
+- **Streamlate**(보라색 아이콘): 컨트롤 패널이 열리며 전부 시작됩니다.
+  OBS에는 한 번만: `소스 → + → 브라우저`, 주소 `http://localhost:8788`,
+  너비 `1400`, 높이 `300` — 원하는 곳으로 드래그.
+- 휴대폰: 패널 → **QR 코드** 스캔 (같은 Wi-Fi).
+- **Streamlate OFF**(회색): 전부 중지.
+
+트레이 메뉴: 배경 이미지(애니 배경화면 등), 이동 모드, 번역 품질/GPU,
+Discord 통화 번역 등. MIT 라이선스.
