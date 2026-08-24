@@ -56,11 +56,15 @@ double-click `install.bat` — same result.
 
 - **`Streamlate`** (purple icon): starts everything — chat overlay,
   phone page, subtitle engine. Tray icons show it's alive.
-- In OBS, once: `Sources → + → Browser`, URL `http://localhost:8788`,
-  Width `1400`, Height `300`. That gives you a small banner source — **drag
-  it anywhere on your canvas like any other source**; captions hug its
-  bottom edge. (A full-canvas-sized source also works: captions sit
-  bottom-center of the screen.)
+- **OBS setup is automatic** if you enable OBS's websocket once (OBS →
+  Tools → WebSocket Server Settings → Enable, and put the password into
+  Streamlate's settings): Streamlate then creates its "Streamlate Captions"
+  (and, if enabled, "Streamlate Chat") browser sources by itself, sized to
+  your canvas, captions bottom-center — drag them wherever you like,
+  they're never repositioned again.
+- Prefer manual? `Sources → + → Browser`, URL `http://localhost:8788`,
+  Width `1400`, Height `300` — a banner you can drag anywhere; captions
+  hug its bottom edge.
 - Phone: right-click either tray icon → **Show phone QR code** and scan it
   (same Wi-Fi), or open the URL shown in the tray tooltip.
 - Want to tell your viewers about Streamlate? `streamlate_link_qr.png` in

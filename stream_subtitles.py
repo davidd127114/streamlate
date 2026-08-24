@@ -507,6 +507,58 @@ class SubsHandler(BaseHTTPRequestHandler):
             pass
 
 
+def ensure_obs_sources(cfg):
+    """If OBS is running and its websocket is reachable, create Streamlate's
+    browser sources automatically (sized to the actual canvas, captions
+    placed bottom-center). Existing sources are never touched — dragging
+    stays sacred. Silently skips when OBS is closed or websocket is off."""
+    import contextlib
+    import io as _io
+    try:
+        import obsws_python as obs
+        with contextlib.redirect_stderr(_io.StringIO()):
+            cl = obs.ReqClient(host="localhost", port=4455,
+                               password=cfg.get("obs_ws_password", ""),
+                               timeout=4)
+    except Exception:
+        return False   # OBS closed / websocket off — manual setup still works
+    try:
+        scene = cl.get_current_program_scene().current_program_scene_name
+        names = [i["sourceName"]
+                 for i in cl.get_scene_item_list(scene).scene_items]
+        v = cl.get_video_settings()
+        W, H = int(v.base_width), int(v.base_height)
+        added = []
+        has_caps = any(n in ("Streamlate Captions", "PT Subtitles")
+                       for n in names)
+        if not has_caps:
+            w = min(1400, W)
+            cl.create_input(scene, "Streamlate Captions", "browser_source",
+                            {"url": "http://localhost:8788",
+                             "width": w, "height": 300}, True)
+            try:
+                iid = [i["sceneItemId"] for i in
+                       cl.get_scene_item_list(scene).scene_items
+                       if i["sourceName"] == "Streamlate Captions"][0]
+                cl.set_scene_item_transform(
+                    scene, iid, {"positionX": (W - w) / 2,
+                                 "positionY": H - 330})
+            except Exception:
+                pass
+            added.append("Captions")
+        if cfg.get("obs_chat_enabled") and "Streamlate Chat" not in names:
+            cl.create_input(scene, "Streamlate Chat", "browser_source",
+                            {"url": "http://localhost:8765/obs",
+                             "width": 1000, "height": 420}, True)
+            added.append("Chat")
+        if added:
+            log("OBS sources created automatically: " + ", ".join(added))
+        return True    # done — sources exist (or just made); stop retrying
+    except Exception as e:
+        log(f"obs auto-setup skipped ({e})")
+        return False
+
+
 def run_tray(cfg):
     try:
         import pystray
@@ -622,6 +674,14 @@ def main():
 
     if cfg["translator"] == "ollama":
         threading.Thread(target=warm_ollama, args=(cfg,), daemon=True).start()
+
+    def obs_setup_loop():
+        # OBS may start after Streamlate — keep offering for a while
+        for _ in range(30):
+            if ensure_obs_sources(cfg):
+                return
+            time.sleep(20)
+    threading.Thread(target=obs_setup_loop, daemon=True).start()
 
     last_line = ""
 
