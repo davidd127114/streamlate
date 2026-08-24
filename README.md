@@ -1,4 +1,4 @@
-# Stream Translator
+# Streamlate
 
 Free, local, live translation for streamers.
 
@@ -41,13 +41,21 @@ field, and your PC does almost nothing. ~$0.25/hr buys you the best tier.
 
 ## Use
 
-- **`Stream Translator`** (purple icon): starts everything — chat overlay,
+- **`Streamlate`** (purple icon): starts everything — chat overlay,
   phone page, subtitle engine. Tray icons show it's alive.
 - In OBS, once: `Sources → + → Browser`, URL `http://localhost:8788`,
   size = your canvas resolution. Captions appear bottom-center when you talk.
 - Phone: open the URL shown in the tray tooltip (same Wi-Fi), or scan
   `phone_qr.png`.
-- **`Stream Translator OFF`** (gray icon): stops everything.
+- **`Streamlate OFF`** (gray icon): stops everything.
+
+## Make it yours
+
+Right-click the purple tray icon → **Change background image…** and pick any
+picture (anime wallpaper, your logo…) — the overlay and the phone page both
+use it, auto-darkened so chat stays readable. Or just drop a file called
+`background.png` into the app folder. Same menu: text size, corner,
+auto-hide, show/hide originals — all without touching the game.
 
 ## Tuning (optional — sensible defaults for everything)
 

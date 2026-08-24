@@ -1,9 +1,9 @@
 @echo off
 setlocal EnableDelayedExpansion
 cd /d "%~dp0"
-title Stream Translator - Installer
+title Streamlate - Installer
 echo ==============================================
-echo   Stream Translator - one-time setup
+echo   Streamlate - one-time setup
 echo   (installs everything needed automatically)
 echo ==============================================
 echo.
@@ -51,9 +51,9 @@ if exist "%OLLAMA_DIR%\ollama app.exe" start "" "%OLLAMA_DIR%\ollama app.exe"
 rem ---------- 4/4 Desktop icons ----------
 echo [4/4] Creating desktop icons...
 set "PYW=!PY:python.exe=pythonw.exe!"
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws = New-Object -ComObject WScript.Shell; $on = $ws.CreateShortcut([Environment]::GetFolderPath('Desktop') + '\Stream Translator.lnk'); $on.TargetPath = '!PYW!'; $on.Arguments = '\"%~dp0stream_mode_launcher.py\"'; $on.WorkingDirectory = '%~dp0'; $on.IconLocation = '%~dp0stream_on.ico,0'; $on.Save(); $off = $ws.CreateShortcut([Environment]::GetFolderPath('Desktop') + '\Stream Translator OFF.lnk'); $off.TargetPath = '!PYW!'; $off.Arguments = '\"%~dp0stream_mode_stop.py\"'; $off.WorkingDirectory = '%~dp0'; $off.IconLocation = '%~dp0stream_off.ico,0'; $off.Save()"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws = New-Object -ComObject WScript.Shell; $on = $ws.CreateShortcut([Environment]::GetFolderPath('Desktop') + '\Streamlate.lnk'); $on.TargetPath = '!PYW!'; $on.Arguments = '\"%~dp0stream_mode_launcher.py\"'; $on.WorkingDirectory = '%~dp0'; $on.IconLocation = '%~dp0stream_on.ico,0'; $on.Save(); $off = $ws.CreateShortcut([Environment]::GetFolderPath('Desktop') + '\Streamlate OFF.lnk'); $off.TargetPath = '!PYW!'; $off.Arguments = '\"%~dp0stream_mode_stop.py\"'; $off.WorkingDirectory = '%~dp0'; $off.IconLocation = '%~dp0stream_off.ico,0'; $off.Save()"
 
 echo.
-echo  Done! Opening Stream Translator setup...
+echo  Done! Opening Streamlate setup...
 start "" "!PYW!" "%~dp0stream_mode_launcher.py"
 ping -n 4 localhost >nul

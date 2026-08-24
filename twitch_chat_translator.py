@@ -57,11 +57,23 @@ DEFAULTS = {
     "overlay_corner": 1,          # 0=top-left 1=top-right 2=bottom-right 3=bottom-left
     "overlay_size": "420x270",
     "overlay_autohide": False,
+    "background_dim": 0.35,   # brightness of the custom background image
 }
 
 OVERLAY_CORNERS = ["+16+16", "-16+16", "-16-16", "+16-16"]
 
 ENGINE_URL = "http://localhost:11434"  # local Ollama, or a rented GPU box
+
+
+def find_background(folder):
+    """User drops background.png/jpg in the app folder — that's the whole
+    feature. Used by both the overlay and the phone page."""
+    for name in ("background.png", "background.jpg", "background.jpeg",
+                 "background.webp"):
+        p = os.path.join(folder, name)
+        if os.path.isfile(p):
+            return p
+    return None
 
 
 def log(msg):
@@ -449,12 +461,16 @@ PHONE_HTML = """<!doctype html>
 <html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Chat Translator</title>
+<title>Streamlate</title>
 <style>
  :root { --fs: 16px; }
  * { margin:0; padding:0; box-sizing:border-box; }
- body { background:#0e0e10; color:#d8d8dc;
+ body { background:#0e0e10 url('/bg') center/cover fixed no-repeat;
+        color:#d8d8dc;
         font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+ #log .m { text-shadow:0 1px 4px rgba(0,0,0,0.9); }
+ #scrim { position:fixed; inset:0; background:rgba(10,10,14,0.45);
+          z-index:-1; }
  #bar { position:fixed; top:0; left:0; right:0; background:#18181bee;
         backdrop-filter:blur(6px); display:flex; align-items:center; gap:8px;
         padding:10px 12px; padding-top:calc(10px + env(safe-area-inset-top)); z-index:10; }
@@ -476,6 +492,7 @@ PHONE_HTML = """<!doctype html>
          display:none; z-index:10; }
 </style></head>
 <body>
+<div id="scrim"></div>
 <div id="bar"><span id="chan">connecting…</span>
  <button id="orig" class="on">PT</button>
  <button id="minus">A−</button><button id="plus">A+</button></div>
@@ -545,6 +562,15 @@ class PhoneHandler(BaseHTTPRequestHandler):
         try:
             if self.path == "/" or self.path.startswith("/index"):
                 self._reply(PHONE_HTML.encode("utf-8"), "text/html; charset=utf-8")
+            elif self.path.startswith("/bg"):
+                bg = find_background(APP_DIR)
+                if not bg:
+                    self.send_error(404)
+                    return
+                with open(bg, "rb") as f:
+                    data = f.read()
+                ctype = "image/png" if bg.endswith(".png") else "image/jpeg"
+                self._reply(data, ctype)
             elif self.path.startswith("/msgs"):
                 qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
                 since = int((qs.get("since", ["0"])[0] or "0"))
@@ -658,7 +684,7 @@ class App(tk.Tk):
         self.last_msg_time = time.time()
         self._status_refresh = 0.0
 
-        self.title("Twitch Chat Translator")
+        self.title("Streamlate")
         self.configure(bg=BG)
         if overlay:
             self.overrideredirect(True)
@@ -682,12 +708,17 @@ class App(tk.Tk):
             self.viewer_label = tk.Label(self, text="", anchor="e", bg=BG,
                                          fg=FG_DIM, padx=8, font=("Segoe UI", 9))
             self.viewer_label.pack(side="top", fill="x")
-        self.text = tk.Text(
-            self, bg=BG, fg=FG_PLAIN, bd=0, padx=10, pady=8,
-            wrap="word", cursor="arrow", state="disabled",
-            insertbackground=BG, selectbackground="#3a3a44",
-        )
-        if not overlay:
+            self.canvas = tk.Canvas(self, bg=BG, bd=0, highlightthickness=0)
+            self.canvas.pack(fill="both", expand=True)
+            self.overlay_msgs = deque(maxlen=10)
+            self._bg_photo = None
+            self.after(350, self._load_overlay_bg)
+        else:
+            self.text = tk.Text(
+                self, bg=BG, fg=FG_PLAIN, bd=0, padx=10, pady=8,
+                wrap="word", cursor="arrow", state="disabled",
+                insertbackground=BG, selectbackground="#3a3a44",
+            )
             sb = tk.Scrollbar(self, command=self.text.yview,
                               troughcolor=BG, bg="#26262c", bd=0)
             self.text.configure(yscrollcommand=sb.set)
@@ -697,7 +728,7 @@ class App(tk.Tk):
             )
             self.status.pack(side="bottom", fill="x")
             sb.pack(side="right", fill="y")
-        self.text.pack(side="left", fill="both", expand=True)
+            self.text.pack(side="left", fill="both", expand=True)
 
         self.apply_fonts()
 
@@ -765,6 +796,35 @@ class App(tk.Tk):
             self.apply_fonts()
         elif cmd == "orig":
             self.cfg["show_original"] = not self.cfg["show_original"]
+            if self.overlay:
+                self._redraw_overlay()
+        elif cmd == "bg":
+            from tkinter import filedialog
+            path = filedialog.askopenfilename(
+                title="Pick a background image",
+                filetypes=[("Images", "*.png *.jpg *.jpeg *.webp *.bmp")])
+            if path:
+                try:
+                    from PIL import Image
+                    Image.open(path).convert("RGB").save(
+                        os.path.join(APP_DIR, "background.png"))
+                    for old in ("background.jpg", "background.jpeg",
+                                "background.webp"):
+                        try:
+                            os.remove(os.path.join(APP_DIR, old))
+                        except OSError:
+                            pass
+                    self._load_overlay_bg()
+                except Exception as e:
+                    log(f"background change failed: {e}")
+        elif cmd == "bgoff":
+            for name in ("background.png", "background.jpg",
+                         "background.jpeg", "background.webp"):
+                try:
+                    os.remove(os.path.join(APP_DIR, name))
+                except OSError:
+                    pass
+            self._load_overlay_bg()
         elif cmd == "corner":
             self.cfg["overlay_corner"] = (self.cfg["overlay_corner"] + 1) % 4
             self.geometry(self.cfg["overlay_size"]
@@ -798,20 +858,29 @@ class App(tk.Tk):
             pystray.MenuItem("Bigger text", put("font+")),
             pystray.MenuItem("Smaller text", put("font-")),
             pystray.MenuItem("Show/hide originals", put("orig")),
+            pystray.MenuItem("Change background image…", put("bg")),
+            pystray.MenuItem("Remove background image", put("bgoff")),
             pystray.MenuItem("Move to next corner", put("corner")),
             pystray.MenuItem("Auto-hide when chat is quiet", put("autohide"),
                              checked=lambda item: bool(self.cfg["overlay_autohide"])),
             pystray.MenuItem("Exit overlay", put("exit")),
         )
         self._tray_icon = pystray.Icon(
-            "twitch_translator_overlay", _tray_image(),
-            f"Chat overlay — #{self.cfg['channel']}", menu=menu)
+            "streamlate_overlay", _tray_image(),
+            f"Streamlate — #{self.cfg['channel']}", menu=menu)
         self._tray_icon.run()
 
     # ---- fonts / tags ----
 
     def apply_fonts(self):
+        import tkinter.font as tkfont
         size = self.cfg["font_size"]
+        self.f_user = tkfont.Font(family="Segoe UI", size=size, weight="bold")
+        self.f_msg = tkfont.Font(family="Segoe UI", size=size)
+        self.f_orig = tkfont.Font(family="Segoe UI", size=max(size - 2, 7))
+        if self.overlay:
+            self._redraw_overlay()
+            return
         self.text.configure(font=("Segoe UI", size))
         self.text.tag_configure("time", foreground=FG_TIME,
                                 font=("Consolas", max(size - 3, 7)))
@@ -893,12 +962,79 @@ class App(tk.Tk):
             safe = "".join(c if ord(c) <= 0xFFFF else "□" for c in s)
             self.text.insert(pos, safe, tag)
 
+    # ---- overlay canvas rendering (supports background images) ----
+
+    def _load_overlay_bg(self):
+        path = find_background(APP_DIR)
+        if not path:
+            self.canvas.delete("bg")
+            self._bg_photo = None
+            return
+        try:
+            from PIL import Image, ImageEnhance, ImageTk
+            self.update_idletasks()
+            w = max(self.canvas.winfo_width(), 50)
+            h = max(self.canvas.winfo_height(), 50)
+            img = Image.open(path).convert("RGB")
+            scale = max(w / img.width, h / img.height)
+            img = img.resize((int(img.width * scale) + 1,
+                              int(img.height * scale) + 1))
+            img = img.crop((0, 0, w, h))
+            img = ImageEnhance.Brightness(img).enhance(
+                float(self.cfg.get("background_dim", 0.35)))
+            self._bg_photo = ImageTk.PhotoImage(img)
+            self.canvas.delete("bg")
+            self.canvas.create_image(0, 0, anchor="nw", image=self._bg_photo,
+                                     tags="bg")
+            self.canvas.tag_lower("bg")
+            log(f"overlay background: {os.path.basename(path)}")
+        except Exception as e:
+            log(f"overlay background failed: {e}")
+
+    def _overlay_add(self, user, color, text, translation):
+        self.overlay_msgs.append(
+            (user, display_color(user, color), text, translation))
+        self._redraw_overlay()
+
+    def _redraw_overlay(self):
+        if not hasattr(self, "canvas"):
+            return
+        c = self.canvas
+        c.delete("msg")
+        W = c.winfo_width() or 400
+        H = c.winfo_height() or 250
+        pad = 10
+
+        def put(x, yy, s, font, fill):
+            c.create_text(x + 1, yy + 1, text=s, font=font, fill="#000000",
+                          anchor="nw", width=W - x - pad, tags="msg")
+            return c.create_text(x, yy, text=s, font=font, fill=fill,
+                                 anchor="nw", width=W - x - pad, tags="msg")
+
+        y = pad
+        for user, ucolor, text, translation in self.overlay_msgs:
+            uid = put(pad, y, user + ":", self.f_user, ucolor)
+            ux = c.bbox(uid)[2] + 6
+            body = translation if translation else text
+            bid = put(min(ux, W - 60), y, body, self.f_msg,
+                      FG_TRANS if translation else FG_PLAIN)
+            y = c.bbox(bid)[3] + 2
+            if translation and self.cfg["show_original"]:
+                oid = put(pad + 18, y, "⤷ " + text, self.f_orig, FG_DIM)
+                y = c.bbox(oid)[3] + 2
+            y += 3
+        overflow = y - H + pad
+        if overflow > 0:
+            c.move("msg", 0, -overflow)
+
     def add_message(self, user, color, text, translation):
         if self.overlay:
             self.last_msg_time = time.time()
             if self.state() == "withdrawn":
                 self._overlay_show()
-        at_bottom = self.overlay or self.text.yview()[1] > 0.985
+            self._overlay_add(user, color, text, translation)
+            return
+        at_bottom = self.text.yview()[1] > 0.985
         self.text.configure(state="normal")
         ts = time.strftime("%H:%M ")
         self._insert("end", ts, "time")
@@ -911,9 +1047,8 @@ class App(tk.Tk):
         else:
             self._insert("end", ": " + text + "\n", "plain")
         # keep the widget light
-        limit = 80 if self.overlay else 900
-        if int(self.text.index("end-1c").split(".")[0]) > limit:
-            self.text.delete("1.0", "40.0" if self.overlay else "120.0")
+        if int(self.text.index("end-1c").split(".")[0]) > 900:
+            self.text.delete("1.0", "120.0")
         self.text.configure(state="disabled")
         if at_bottom:
             self.text.see("end")
@@ -952,7 +1087,7 @@ class App(tk.Tk):
         if self.cfg["channel"] and channel != self.cfg["channel"]:
             self.history.clear()
         self.cfg["channel"] = channel
-        self.title(f"Twitch Chat Translator — #{channel}")
+        self.title(f"Streamlate — #{channel}")
         self.irc = IrcReader(channel, self.raw_q, self.ui_q)
         self.irc.start()
 
@@ -1044,8 +1179,8 @@ def _run_tray(cfg, url):
         icon.stop()
 
     icon = pystray.Icon(
-        "twitch_translator", img,
-        f"Chat Translator — #{cfg['channel']} · {url}",
+        "streamlate", img,
+        f"Streamlate — #{cfg['channel']} · {url}",
         menu=pystray.Menu(
             pystray.MenuItem(f"#{cfg['channel']} — {url}", None, enabled=False),
             pystray.MenuItem("Open phone page in browser", open_page, default=True),

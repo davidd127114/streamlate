@@ -17,6 +17,18 @@ LANGS = [("Portuguese (Brazil)", "pt"), ("Spanish", "es"), ("French", "fr"),
          ("Russian", "ru"), ("Chinese", "zh")]
 
 
+def _merge_into(path, new_keys):
+    """Update a config file without wiping settings the user tuned by hand."""
+    try:
+        with open(path, "r", encoding="utf-8-sig") as f:
+            cur = json.load(f)
+    except (OSError, ValueError):
+        cur = {}
+    cur.update(new_keys)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(cur, f, indent=2)
+
+
 def write_configs(channel, target_lang, mic_device, plan, engine_url):
     chat = {
         "channel": channel,
@@ -33,11 +45,8 @@ def write_configs(channel, target_lang, mic_device, plan, engine_url):
         "model": plan["whisper_model"],
         "use_gpu": plan["use_gpu"],
     }
-    with open(os.path.join(APP_DIR, "config.json"), "w", encoding="utf-8") as f:
-        json.dump(chat, f, indent=2)
-    with open(os.path.join(APP_DIR, "subs_config.json"), "w",
-              encoding="utf-8") as f:
-        json.dump(subs, f, indent=2)
+    _merge_into(os.path.join(APP_DIR, "config.json"), chat)
+    _merge_into(os.path.join(APP_DIR, "subs_config.json"), subs)
 
 
 def list_mics():
@@ -60,7 +69,7 @@ def main_gui():
 
     plan = hardware.pick()
     root = tk.Tk()
-    root.title("Stream Translator — Setup")
+    root.title("Streamlate — Setup")
     root.configure(bg="#141417")
     root.resizable(False, False)
     FG, BG, ACC = "#e8e8ee", "#141417", "#a970ff"
@@ -72,7 +81,7 @@ def main_gui():
                  font=("Segoe UI", 10, "bold")).pack(anchor="w")
         return f
 
-    tk.Label(root, text="Stream Translator", bg=BG, fg=ACC,
+    tk.Label(root, text="Streamlate", bg=BG, fg=ACC,
              font=("Segoe UI", 16, "bold"), pady=10).pack()
 
     r = row("Your Twitch channel")

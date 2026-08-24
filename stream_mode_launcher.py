@@ -67,7 +67,7 @@ def main():
         [pyw, os.path.join(APP_DIR, "stream_subtitles.py")],
         cwd=APP_DIR, creationflags=CREATE_NO_WINDOW)
     splash([
-        "Stream Translator — starting",
+        "Streamlate — starting",
         "🟣  Chat overlay + phone page",
         "🟢  PT subtitles for OBS",
         "Start OBS and go live — everything else is automatic.",
