@@ -38,7 +38,12 @@ if sys.stdout is None:
 if sys.stderr is None:
     sys.stderr = sys.stdout
 
-from audio_listener import AudioListener  # local copy - mic capture + whisper
+try:
+    from audio_listener import AudioListener  # local copy - mic capture
+except Exception as _e:   # broken pip install etc. — say so in plain words
+    print(f"FATAL: audio engine failed to load ({_e!r}). "
+          "Re-run install.bat (or StreamlateSetup.exe) to repair packages.")
+    raise
 
 
 class TunedListener(AudioListener):
