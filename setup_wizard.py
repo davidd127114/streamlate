@@ -356,9 +356,9 @@ def main_gui():
         if mic.startswith("["):
             mic_idx = int(mic.split("]")[0][1:])
         lang = dict(LANGS)[lang_var.get()]
+        from chat_sources import detect_platform, normalize_channel
         ch = channel_var.get().strip()
-        if not (ch.startswith("@") or "/" in ch):   # plain Twitch name
-            ch = ch.lstrip("#").lower()
+        ch = normalize_channel(ch, detect_platform(ch))
         spoken_code = dict(SPOKEN_LANGS)[spoken_var.get()]
         dev = call_dev_var.get()
         extra_subs = {

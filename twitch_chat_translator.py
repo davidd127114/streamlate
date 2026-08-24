@@ -517,7 +517,8 @@ def parse_privmsg(line):
 class IrcReader(threading.Thread):
     def __init__(self, channel, out_q, ui_q):
         super().__init__(daemon=True)
-        self.channel = channel.lower().lstrip("#@ ")
+        from chat_sources import normalize_channel
+        self.channel = normalize_channel(channel, "twitch")
         self.out_q = out_q
         self.ui_q = ui_q
         self.stop_ev = threading.Event()
@@ -875,6 +876,8 @@ TWITCH_WEB_CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"  # Twitch's own public w
 
 def fetch_viewers(channel):
     """Live viewer count via Twitch's public GraphQL (no login). None = offline."""
+    from chat_sources import normalize_channel
+    channel = normalize_channel(channel, "twitch")
     body = json.dumps({
         "query": '{user(login:"%s"){stream{viewersCount}}}' % channel,
     }).encode("utf-8")
@@ -1482,12 +1485,10 @@ class App(tk.Tk):
     def start_irc(self, channel):
         if self.irc:
             self.irc.stop()
-        from chat_sources import detect_platform, display_name
+        from chat_sources import (detect_platform, display_name,
+                                  normalize_channel)
         platform = detect_platform(channel, self.cfg.get("platform", "auto"))
-        if platform == "twitch":
-            channel = channel.strip().lower().lstrip("#@ ")
-        else:
-            channel = channel.strip()
+        channel = normalize_channel(channel, platform)
         if self.cfg["channel"] and channel != self.cfg["channel"]:
             self.history.clear()
         self.cfg["channel"] = channel

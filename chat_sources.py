@@ -22,7 +22,23 @@ def detect_platform(channel, configured="auto"):
         return "youtube"
     if "kick.com" in c:
         return "kick"
-    return "twitch"
+    return "twitch"   # includes pasted twitch.tv URLs (normalize_channel strips them)
+
+
+def normalize_channel(channel, platform=None):
+    """People paste full URLs — make them work. A Twitch URL (or #name /
+    @name / trailing junk) collapses to the bare lowercase channel name;
+    YouTube and Kick forms pass through for their own readers."""
+    c = (channel or "").strip()
+    p = platform or detect_platform(c)
+    if p == "twitch":
+        low = c.lower()
+        for sep in ("twitch.tv/",):
+            if sep in low:
+                c = c[low.find(sep) + len(sep):]
+                break
+        c = (c.split("/")[0].split("?")[0].strip().lstrip("#@ ").lower())
+    return c
 
 
 def display_name(channel):
