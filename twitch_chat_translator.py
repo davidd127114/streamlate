@@ -620,9 +620,12 @@ PHONE_HTML = """<!doctype html>
 <style>
  :root { --fs: 16px; }
  * { margin:0; padding:0; box-sizing:border-box; }
- body { background:#0e0e10 url('/bg') center/cover fixed no-repeat;
-        color:#d8d8dc;
+ body { background:#0e0e10; color:#d8d8dc;
         font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+ /* fixed DIV, not background-attachment:fixed — mobile browsers zoom and
+    stretch the latter as the page grows (the "messed up image" bug) */
+ #bgi { position:fixed; inset:0; z-index:-2;
+        background:url('/bg') center/cover no-repeat; }
  #log .m { text-shadow:0 1px 4px rgba(0,0,0,0.9); }
  #scrim { position:fixed; inset:0; background:rgba(10,10,14,0.45);
           z-index:-1; }
@@ -647,6 +650,7 @@ PHONE_HTML = """<!doctype html>
          display:none; z-index:10; }
 </style></head>
 <body>
+<div id="bgi"></div>
 <div id="scrim"></div>
 <div id="bar"><span id="chan">connecting…</span>
  <button id="orig" class="on">PT</button>
