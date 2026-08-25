@@ -323,6 +323,14 @@ def main_gui():
                    selectcolor="#26262c", activebackground=BG,
                    activeforeground=FG,
                    font=("Segoe UI", 10)).pack(anchor="w")
+    TTS_STYLES = [("Male (default)", "male"), ("Female — smooth", "female"),
+                  ("Female — expressive", "expressive")]
+    style2name = {c: n for n, c in TTS_STYLES}
+    ttsvoice_var = tk.StringVar(
+        value=style2name.get(chat_cfg.get("tts_style", "male"),
+                             TTS_STYLES[0][0]))
+    ttk.Combobox(r, textvariable=ttsvoice_var, state="readonly", width=24,
+                 values=[n for n, _ in TTS_STYLES]).pack(anchor="w", pady=3)
 
     r = row(tr("wiz_look"), adv)
     f3 = tk.Frame(r, bg=BG)
@@ -408,6 +416,7 @@ def main_gui():
                       "my_lang": ("en" if spoken_code == "auto"
                                   else spoken_code),
                       "tts_enabled": bool(tts_var.get()),
+                      "tts_style": dict(TTS_STYLES)[ttsvoice_var.get()],
                       "family_filter": bool(family_var.get()),
                       "enable_chat": bool(en_chat_var.get()),
                       "enable_subs": bool(en_subs_var.get()),

@@ -12,18 +12,43 @@ import tempfile
 import threading
 import time
 
-NEURAL_VOICES = {
-    "en": "en-US-ChristopherNeural", "pt": "pt-BR-AntonioNeural",
-    "es": "es-MX-JorgeNeural", "he": "he-IL-AvriNeural",
-    "pl": "pl-PL-MarekNeural", "ja": "ja-JP-KeitaNeural",
-    "zh": "zh-CN-YunxiNeural", "ko": "ko-KR-InJoonNeural",
-    "fr": "fr-FR-HenriNeural", "de": "de-DE-ConradNeural",
-    "ru": "ru-RU-DmitryNeural", "tr": "tr-TR-AhmetNeural",
-    "ar": "ar-SA-HamedNeural", "hi": "hi-IN-MadhurNeural",
-    "it": "it-IT-DiegoNeural", "nl": "nl-NL-MaartenNeural",
-    "uk": "uk-UA-OstapNeural", "vi": "vi-VN-NamMinhNeural",
-    "th": "th-TH-NiwatNeural", "id": "id-ID-ArdiNeural",
+VOICE_STYLES = {
+    "male": {
+        "en": "en-US-ChristopherNeural", "pt": "pt-BR-AntonioNeural",
+        "es": "es-MX-JorgeNeural", "he": "he-IL-AvriNeural",
+        "pl": "pl-PL-MarekNeural", "ja": "ja-JP-KeitaNeural",
+        "zh": "zh-CN-YunxiNeural", "ko": "ko-KR-InJoonNeural",
+        "fr": "fr-FR-HenriNeural", "de": "de-DE-ConradNeural",
+        "ru": "ru-RU-DmitryNeural", "tr": "tr-TR-AhmetNeural",
+        "ar": "ar-SA-HamedNeural", "hi": "hi-IN-MadhurNeural",
+        "it": "it-IT-DiegoNeural", "nl": "nl-NL-MaartenNeural",
+        "uk": "uk-UA-OstapNeural", "vi": "vi-VN-NamMinhNeural",
+        "th": "th-TH-NiwatNeural", "id": "id-ID-ArdiNeural",
+    },
+    "female": {   # the smooth ones
+        "en": "en-US-AvaMultilingualNeural", "pt": "pt-BR-ThalitaNeural",
+        "es": "es-MX-DaliaNeural", "he": "he-IL-HilaNeural",
+        "pl": "pl-PL-ZofiaNeural", "ja": "ja-JP-NanamiNeural",
+        "zh": "zh-CN-XiaoxiaoNeural", "ko": "ko-KR-SunHiNeural",
+        "fr": "fr-FR-DeniseNeural", "de": "de-DE-KatjaNeural",
+        "ru": "ru-RU-SvetlanaNeural", "tr": "tr-TR-EmelNeural",
+        "ar": "ar-SA-ZariyahNeural", "hi": "hi-IN-SwaraNeural",
+        "it": "it-IT-ElsaNeural", "nl": "nl-NL-FennaNeural",
+        "uk": "uk-UA-PolinaNeural", "vi": "vi-VN-HoaiMyNeural",
+        "th": "th-TH-PremwadeeNeural", "id": "id-ID-GadisNeural",
+    },
+    "expressive": {"en": "en-US-AriaNeural"},   # falls back to female map
 }
+
+
+def pick_voice(cfg):
+    lang = cfg.get("my_lang", "en")
+    style = cfg.get("tts_style", "male")
+    for m in (VOICE_STYLES.get(style, {}), VOICE_STYLES["female"],
+              VOICE_STYLES["male"]):
+        if lang in m:
+            return m[lang]
+    return VOICE_STYLES["male"]["en"]
 
 
 def _mci(cmd):
@@ -62,8 +87,7 @@ class ChatSpeaker(threading.Thread):
     # ---- neural path (edge-tts + MCI playback, zero extra players) ----
     def _speak_natural(self, line):
         import edge_tts
-        voice = NEURAL_VOICES.get(self.cfg.get("my_lang", "en"),
-                                  NEURAL_VOICES["en"])
+        voice = pick_voice(self.cfg)
         self._n += 1
         tmp = os.path.join(tempfile.gettempdir(),
                            f"streamlate_tts_{os.getpid()}_{self._n}.mp3")
