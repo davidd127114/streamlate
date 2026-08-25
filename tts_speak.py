@@ -1,8 +1,33 @@
-"""Read translated chat aloud to the streamer — offline Windows voices,
-zero external services. Flood-safe: keeps at most 3 queued lines and
-drops the oldest, so a raid never builds a backlog of speech."""
+"""Read translated chat aloud to the streamer.
+
+Primary: Microsoft neural voices via edge-tts — natural, free, per-language
+(needs internet). Playback through Windows' built-in MCI, so no media
+player dependencies. Fallback: offline SAPI (pyttsx3) if the neural path
+fails. Flood-safe: at most 3 queued lines, oldest dropped."""
+import asyncio
+import ctypes
+import os
 import queue
+import tempfile
 import threading
+import time
+
+NEURAL_VOICES = {
+    "en": "en-US-ChristopherNeural", "pt": "pt-BR-AntonioNeural",
+    "es": "es-MX-JorgeNeural", "he": "he-IL-AvriNeural",
+    "pl": "pl-PL-MarekNeural", "ja": "ja-JP-KeitaNeural",
+    "zh": "zh-CN-YunxiNeural", "ko": "ko-KR-InJoonNeural",
+    "fr": "fr-FR-HenriNeural", "de": "de-DE-ConradNeural",
+    "ru": "ru-RU-DmitryNeural", "tr": "tr-TR-AhmetNeural",
+    "ar": "ar-SA-HamedNeural", "hi": "hi-IN-MadhurNeural",
+    "it": "it-IT-DiegoNeural", "nl": "nl-NL-MaartenNeural",
+    "uk": "uk-UA-OstapNeural", "vi": "vi-VN-NamMinhNeural",
+    "th": "th-TH-NiwatNeural", "id": "id-ID-ArdiNeural",
+}
+
+
+def _mci(cmd):
+    ctypes.windll.winmm.mciSendStringW(cmd, None, 0, None)
 
 
 class ChatSpeaker(threading.Thread):
@@ -12,6 +37,7 @@ class ChatSpeaker(threading.Thread):
         self.log = log
         self.q = queue.Queue(maxsize=3)
         self.stop_ev = threading.Event()
+        self._n = 0
 
     def say(self, user, text):
         if self.stop_ev.is_set():
@@ -33,33 +59,53 @@ class ChatSpeaker(threading.Thread):
         except queue.Full:
             pass
 
-    def run(self):
+    # ---- neural path (edge-tts + MCI playback, zero extra players) ----
+    def _speak_natural(self, line):
+        import edge_tts
+        voice = NEURAL_VOICES.get(self.cfg.get("my_lang", "en"),
+                                  NEURAL_VOICES["en"])
+        self._n += 1
+        tmp = os.path.join(tempfile.gettempdir(),
+                           f"streamlate_tts_{os.getpid()}_{self._n}.mp3")
+        asyncio.run(edge_tts.Communicate(line, voice,
+                                         rate="+12%").save(tmp))
+        alias = f"slv{self._n}"
+        vol = int(float(self.cfg.get("tts_volume", 0.9)) * 1000)
+        _mci(f'open "{tmp}" type mpegvideo alias {alias}')
+        _mci(f"setaudio {alias} volume to {vol}")
+        _mci(f"play {alias} wait")
+        _mci(f"close {alias}")
         try:
-            import pyttsx3
-        except ImportError:
-            self.log("tts: pyttsx3 missing — pip install pyttsx3")
-            return
-        engine = pyttsx3.init()
-        engine.setProperty("rate", 185)
-        engine.setProperty("volume", float(self.cfg.get("tts_volume", 0.9)))
-        # prefer a voice matching the language the streamer reads in
-        want = {"en": "english", "pt": "portug", "es": "spanish",
-                "pl": "polish", "he": "hebrew", "ja": "japanese",
-                "zh": "chinese", "ko": "korean", "fr": "french",
-                "de": "german", "ru": "russian"}.get(
-                    self.cfg.get("my_lang", "en"), "english")
-        for v in engine.getProperty("voices"):
-            blob = (v.name + " " + (v.id or "")).lower()
-            if want in blob:
-                engine.setProperty("voice", v.id)
-                break
-        self.log("tts: speaker ready")
+            os.remove(tmp)
+        except OSError:
+            pass
+
+    def run(self):
+        natural = self.cfg.get("tts_engine", "natural") == "natural"
+        offline = None
+        self.log("tts: speaker ready "
+                 + ("(neural voices)" if natural else "(offline voice)"))
         while not self.stop_ev.is_set():
             line = self.q.get()
             if not line or self.stop_ev.is_set():
                 continue
+            if natural:
+                try:
+                    self._speak_natural(line)
+                    continue
+                except Exception as e:
+                    natural = False
+                    self.log(f"tts: neural voice unavailable ({e}) — "
+                             "switching to offline voice")
             try:
-                engine.say(line)
-                engine.runAndWait()
+                if offline is None:
+                    import pyttsx3
+                    offline = pyttsx3.init()
+                    offline.setProperty("rate", 185)
+                    offline.setProperty(
+                        "volume", float(self.cfg.get("tts_volume", 0.9)))
+                offline.say(line)
+                offline.runAndWait()
             except Exception as e:
                 self.log(f"tts error: {e}")
+                time.sleep(1)
