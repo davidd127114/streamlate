@@ -1143,6 +1143,14 @@ class App(tk.Tk):
             if abs(new - cur) > 0.004:
                 self._ghost_alpha = new
                 self.attributes("-alpha", new)
+            # some games (GunZ Astra) mark THEMSELVES topmost and bury us on
+            # focus — periodically re-assert our spot atop the topmost band
+            self._zorder_n = getattr(self, "_zorder_n", 0) + 1
+            if self._zorder_n >= 33 and self.overlay_locked \
+                    and self.state() != "withdrawn":   # every ~2s
+                self._zorder_n = 0
+                hwnd = int(self.wm_frame(), 16)
+                u.SetWindowPos(hwnd, -1, 0, 0, 0, 0, 0x0013)
         except Exception:
             pass
         self.after(60, self._ghost_tick)
