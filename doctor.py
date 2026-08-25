@@ -72,7 +72,8 @@ def diagnose(app_dir):
         msgs.append(f"Broken installation: missing {', '.join(miss)}")
         fixes.add("deps")
     for name, fname in (("Voice subtitles", "subs.log"),
-                        ("Chat translation", "translator.log")):
+                        ("Chat translation", "translator.log"),
+                        ("Viewer mode", "viewer.log")):
         err = last_error(os.path.join(app_dir, fname))
         if err:
             msgs.append(f"{name} last error: {err}")
@@ -94,8 +95,10 @@ def recent_errors(app_dir, tail_lines=6):
     miss = missing_deps()
     parts.append("packages: " + ("all OK" if not miss
                                  else "MISSING " + ", ".join(miss)))
-    for fname in ("subs.log", "translator.log"):
+    for fname in ("subs.log", "translator.log", "viewer.log"):
         path = os.path.join(app_dir, fname)
+        if fname == "viewer.log" and not os.path.exists(path):
+            continue    # only present once viewer mode has been used
         parts.append(f"\n--- {fname} ---")
         try:
             with open(path, encoding="utf-8", errors="replace") as f:
@@ -141,7 +144,7 @@ def write_report(app_dir):
         parts.append("gpu: " + (gpu or "none detected"))
     except Exception:
         parts.append("gpu: no nvidia driver")
-    for fname in ("subs.log", "translator.log"):
+    for fname in ("subs.log", "translator.log", "viewer.log"):
         parts.append(f"\n========== {fname} ==========")
         try:
             with open(os.path.join(app_dir, fname), encoding="utf-8",

@@ -82,3 +82,24 @@ esperar — ¡agrega los términos de tu juego!), `engine_url` remota.
   Ollama está apagado.
 - Hecho por un streamer que quería que su chat brasileño lo entendiera.
   Licencia MIT — haz lo que quieras.
+
+## Modo espectador — mira streamers extranjeros
+
+Streamlate también funciona al revés. Abre **Streamlate Control** →
+**👁 Modo espectador**: en vez de traducir TU stream para los viewers,
+traduce un stream que TÚ estás viendo.
+
+- **Subtítulos de voz en vivo** — reproduce cualquier stream; el idioma del
+  streamer se detecta automáticamente y se traduce a tu idioma en una
+  píldora arrastrable (clic derecho: idioma, tamaño, mostrar original,
+  fuente de audio).
+- **Texto en pantalla (beta)** — clic derecho → *Traducir texto en
+  pantalla*, arrastra un recuadro sobre su chat o texto y aparece un panel
+  con la traducción en vivo. Para japonés/coreano/chino, añade ese idioma en
+  Configuración de Windows → Idioma.
+
+Límite honesto: el audio del stream llega mezclado — no se puede aislar solo
+el micrófono del streamer, y la música con voces puede generar líneas
+sueltas. Si la música es TUYA, reprodúcela en otro dispositivo de salida y
+elige el del stream en *Fuente de audio*. **🎥 Volver al modo streamer** en
+el mismo panel lo revierte todo.

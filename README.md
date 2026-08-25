@@ -101,6 +101,32 @@ picked in **Change settings → More settings**, no config editing.
 reopens the setup wizard (mic, languages, channel) and restarts Streamlate
 with the new choices. Your other tweaks are kept.
 
+## Viewer mode — watch foreign streamers
+
+Streamlate works in the other direction too. Open **Streamlate Control** →
+**👁 Viewer mode**: instead of translating your stream for viewers, it
+translates a stream YOU are watching.
+
+- **Live voice captions** — play any stream (Twitch, YouTube, Kick, any
+  site); whatever language the streamer speaks is auto-detected and
+  translated to your language in a draggable caption pill. Right-click it
+  for language, text size, showing the original, and which audio device to
+  listen to.
+- **Screen text (beta)** — right-click the pill → *Translate screen text*,
+  drag a box over their on-screen chat or overlay text, and a live
+  translation panel appears next to it. Uses Windows' built-in OCR: for
+  Japanese/Korean/Chinese etc., add that language once in Windows
+  Settings → Language.
+
+Honest limits: the captions hear the stream's full audio mix, so a streamer
+blasting music with vocals can produce stray lines, and everyone talking
+gets translated — there is no way to isolate just the streamer's microphone
+from an already-mixed stream. If YOUR music is the problem, play it on a
+different output device (headphones vs speakers) and pick the stream's
+device under *Audio source*.
+
+**🎥 Back to Streamer mode** in the same panel switches everything back.
+
 ## Make it yours
 
 Right-click the purple tray icon → **Change background image…** and pick any

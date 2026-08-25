@@ -61,7 +61,7 @@ def make_share_qr():
         pass
 
 
-def control_panel(en_chat, en_subs, updated, repaired=None):
+def control_panel(en_chat, en_subs, updated, repaired=None, mode="streamer"):
     """The window that opens when you click Streamlate: live status of both
     halves + the buttons people actually need. Closing it changes nothing —
     Streamlate keeps running in the tray."""
@@ -103,19 +103,6 @@ def control_panel(en_chat, en_subs, updated, repaired=None):
         tk.Label(root, text=tr("repaired", names=", ".join(repaired)),
                  bg=BG, fg="#9adf9e", font=("Segoe UI", 9)).pack()
 
-    rows = tk.Frame(root, bg=BG)
-    rows.pack(pady=8)
-    status_lbls = {}
-    for key, name, port, enabled in (("chat", tr("p_chat"), 8765, en_chat),
-                                     ("subs", tr("p_subs"), 8788, en_subs)):
-        f = tk.Frame(rows, bg=BG)
-        f.pack(fill="x", padx=26, pady=3)
-        tk.Label(f, text=name, bg=BG, fg=FG, width=16, anchor="w",
-                 font=("Segoe UI", 11)).pack(side="left")
-        lbl = tk.Label(f, text="…", bg=BG, fg=DIM, font=("Segoe UI", 11))
-        lbl.pack(side="left")
-        status_lbls[key] = (lbl, port, enabled)
-
     def alive(port):
         s = socket.socket()
         s.settimeout(0.3)
@@ -125,6 +112,30 @@ def control_panel(en_chat, en_subs, updated, repaired=None):
             return True
         except OSError:
             return False
+
+    def viewer_alive():
+        try:
+            return time.time() - os.path.getmtime(
+                os.path.join(APP_DIR, "viewer.alive")) < 8
+        except OSError:
+            return False
+
+    if mode == "viewer":
+        row_defs = [("viewer", tr("p_viewer_row"), viewer_alive, True)]
+    else:
+        row_defs = [("chat", tr("p_chat"), lambda: alive(8765), en_chat),
+                    ("subs", tr("p_subs"), lambda: alive(8788), en_subs)]
+    rows = tk.Frame(root, bg=BG)
+    rows.pack(pady=8)
+    status_lbls = {}
+    for key, name, check, enabled in row_defs:
+        f = tk.Frame(rows, bg=BG)
+        f.pack(fill="x", padx=26, pady=3)
+        tk.Label(f, text=name, bg=BG, fg=FG, width=16, anchor="w",
+                 font=("Segoe UI", 11)).pack(side="left")
+        lbl = tk.Label(f, text="…", bg=BG, fg=DIM, font=("Segoe UI", 11))
+        lbl.pack(side="left")
+        status_lbls[key] = (lbl, check, enabled)
 
     boot_t = time.time()
     diag_state = {"ran": False, "fixes": set()}
@@ -148,10 +159,10 @@ def control_panel(en_chat, en_subs, updated, repaired=None):
 
     def refresh():
         stuck = False
-        for lbl, port, enabled in status_lbls.values():
+        for lbl, check, enabled in status_lbls.values():
             if not enabled:
                 lbl.config(text="⚪ " + tr("p_off"), fg=DIM)
-            elif alive(port):
+            elif check():
                 lbl.config(text="🟢 " + tr("p_on"), fg="#9adf9e")
             else:
                 lbl.config(text="🕓 " + tr("p_starting"), fg="#e6c07b")
@@ -171,14 +182,11 @@ def control_panel(en_chat, en_subs, updated, repaired=None):
                   activebackground="#3a3a44",
                   activeforeground=FG).grid(row=0, column=col, padx=4)
 
-    mkbtn(0, tr("p_phone"), lambda: webbrowser.open("http://localhost:8765"))
-
     def show_qr():
         try:
             os.startfile(os.path.join(APP_DIR, "phone_qr.png"))
         except OSError:
             pass
-    mkbtn(1, tr("p_qr"), show_qr)
 
     def open_settings():
         root.destroy()
@@ -187,7 +195,42 @@ def control_panel(en_chat, en_subs, updated, repaired=None):
         subprocess.Popen([sys.executable,
                           os.path.join(APP_DIR, "stream_mode_launcher.py")],
                          cwd=APP_DIR)
-    mkbtn(2, tr("p_settings"), open_settings)
+
+    def switch_mode():
+        """Streamer ⇄ viewer. Stops the running half and relaunches —
+        user-initiated, so the on-stream warning rule is theirs to weigh."""
+        import json
+        cfg_path = os.path.join(APP_DIR, "config.json")
+        try:
+            with open(cfg_path, encoding="utf-8-sig") as f:
+                c = json.load(f)
+        except (OSError, ValueError):
+            c = {}
+        c["app_mode"] = "streamer" if mode == "viewer" else "viewer"
+        try:
+            with open(cfg_path, "w", encoding="utf-8") as f:
+                json.dump(c, f, indent=2)
+        except OSError:
+            return
+        try:
+            subprocess.run(
+                ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
+                 "-File", os.path.join(APP_DIR, "_stop.ps1")],
+                creationflags=CREATE_NO_WINDOW, timeout=30)
+        except Exception:
+            pass
+        subprocess.Popen([sys.executable,
+                          os.path.join(APP_DIR, "stream_mode_launcher.py")],
+                         cwd=APP_DIR)
+        root.destroy()
+
+    if mode == "viewer":
+        mkbtn(0, tr("p_streamer_mode"), switch_mode, color="#3d2a5a")
+    else:
+        mkbtn(0, tr("p_phone"),
+              lambda: webbrowser.open("http://localhost:8765"))
+        mkbtn(1, tr("p_qr"), show_qr)
+        mkbtn(2, tr("p_settings"), open_settings)
 
     def stop_all():
         try:
@@ -229,8 +272,17 @@ def control_panel(en_chat, en_subs, updated, repaired=None):
                                  bd=0, font=("Segoe UI", 10), padx=14,
                                  pady=7, activebackground="#3a3a44",
                                  activeforeground=FG)
-    copyerr_btn["b"].grid(row=1, column=0, columnspan=5, padx=4,
-                          pady=(6, 0))
+    if mode == "viewer":
+        copyerr_btn["b"].grid(row=1, column=0, columnspan=5, padx=4,
+                              pady=(6, 0))
+    else:
+        copyerr_btn["b"].grid(row=1, column=0, columnspan=2, padx=4,
+                              pady=(6, 0))
+        tk.Button(btns, text=tr("p_viewer_mode"), command=switch_mode,
+                  bg="#26262c", fg=FG, bd=0, font=("Segoe UI", 10),
+                  padx=14, pady=7, activebackground="#3a3a44",
+                  activeforeground=FG).grid(row=1, column=2, columnspan=3,
+                                            padx=4, pady=(6, 0))
 
     def do_repair():
         repair_btn.config(state="disabled", text="…")
@@ -301,6 +353,11 @@ def main():
     en_chat = c.get("enable_chat", True)
     en_subs = c.get("enable_subs", True)
     pyw = sys.executable
+    if c.get("app_mode") == "viewer":
+        subprocess.Popen([pyw, os.path.join(APP_DIR, "viewer_mode.py")],
+                         cwd=APP_DIR, creationflags=CREATE_NO_WINDOW)
+        control_panel(False, False, updated, repaired, mode="viewer")
+        return
     if en_chat:
         subprocess.Popen(
             [pyw, os.path.join(APP_DIR, "twitch_chat_translator.py"),

@@ -45,3 +45,23 @@ twój kanał, język, mikrofon, gotowe.
 Menu zasobnika: tło (np. tapeta anime), tryb przesuwania, jakość
 tłumaczenia / użycie GPU, tłumaczenie rozmów z Discorda i więcej.
 Licencja MIT.
+
+## Tryb widza — oglądaj zagranicznych streamerów
+
+Streamlate działa też w drugą stronę. Otwórz **Streamlate Control** →
+**👁 Tryb widza**: zamiast tłumaczyć TWÓJ stream dla widzów, tłumaczy
+stream, który TY oglądasz.
+
+- **Napisy głosowe na żywo** — włącz dowolny stream; język streamera jest
+  wykrywany automatycznie i tłumaczony na Twój język w przesuwalnej pigułce
+  z napisami (prawy przycisk: język, rozmiar, oryginał, źródło dźwięku).
+- **Tekst z ekranu (beta)** — prawy przycisk → *Tłumacz tekst z ekranu*,
+  przeciągnij ramkę nad ich czatem lub tekstem, a obok pojawi się panel z
+  tłumaczeniem na żywo. Dla japońskiego/koreańskiego/chińskiego dodaj ten
+  język w Ustawieniach Windows → Język.
+
+Szczera granica: dźwięk streama jest już zmiksowany — nie da się wyizolować
+samego mikrofonu streamera, a muzyka z wokalem może dawać zbędne linie.
+Jeśli to TWOJA muzyka przeszkadza, odtwarzaj ją na innym urządzeniu i
+wybierz urządzenie streama w *Źródło dźwięku*. **🎥 Powrót do trybu
+streamera** w tym samym panelu przywraca wszystko.
