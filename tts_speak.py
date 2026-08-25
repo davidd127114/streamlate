@@ -41,14 +41,27 @@ VOICE_STYLES = {
 }
 
 
+# character voices: one fixed voice + tuning, regardless of language
+SPECIAL_STYLES = {
+    "anime":     ("ja-JP-NanamiNeural",   "+4%", "+2Hz"),
+    "kawaii":    ("ja-JP-NanamiNeural",   "+8%", "+18Hz"),
+    "xiaoxiao":  ("zh-CN-XiaoxiaoNeural", "+4%", "+8Hz"),
+    "cutepitch": ("en-US-JennyNeural",    "+8%", "+30Hz"),
+    "sunhi":     ("ko-KR-SunHiNeural",    "+5%", "+10Hz"),
+}
+
+
 def pick_voice(cfg):
-    lang = cfg.get("my_lang", "en")
+    """Returns (voice, rate, pitch) for the configured style."""
     style = cfg.get("tts_style", "male")
+    if style in SPECIAL_STYLES:
+        return SPECIAL_STYLES[style]
+    lang = cfg.get("my_lang", "en")
     for m in (VOICE_STYLES.get(style, {}), VOICE_STYLES["female"],
               VOICE_STYLES["male"]):
         if lang in m:
-            return m[lang]
-    return VOICE_STYLES["male"]["en"]
+            return m[lang], "+12%", "+0Hz"
+    return VOICE_STYLES["male"]["en"], "+12%", "+0Hz"
 
 
 def _mci(cmd):
@@ -87,12 +100,12 @@ class ChatSpeaker(threading.Thread):
     # ---- neural path (edge-tts + MCI playback, zero extra players) ----
     def _speak_natural(self, line):
         import edge_tts
-        voice = pick_voice(self.cfg)
+        voice, rate, pitch = pick_voice(self.cfg)
         self._n += 1
         tmp = os.path.join(tempfile.gettempdir(),
                            f"streamlate_tts_{os.getpid()}_{self._n}.mp3")
-        asyncio.run(edge_tts.Communicate(line, voice,
-                                         rate="+12%").save(tmp))
+        asyncio.run(edge_tts.Communicate(line, voice, rate=rate,
+                                         pitch=pitch).save(tmp))
         alias = f"slv{self._n}"
         vol = int(float(self.cfg.get("tts_volume", 0.9)) * 1000)
         _mci(f'open "{tmp}" type mpegvideo alias {alias}')

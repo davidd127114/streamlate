@@ -324,7 +324,12 @@ def main_gui():
                    activeforeground=FG,
                    font=("Segoe UI", 10)).pack(anchor="w")
     TTS_STYLES = [("Male (default)", "male"), ("Female — smooth", "female"),
-                  ("Female — expressive", "expressive")]
+                  ("Female — expressive", "expressive"),
+                  ("Anime — Nanami", "anime"),
+                  ("Anime — extra kawaii", "kawaii"),
+                  ("Anime — Xiaoxiao", "xiaoxiao"),
+                  ("Cute high-pitch (no accent)", "cutepitch"),
+                  ("Anime — SunHi", "sunhi")]
     style2name = {c: n for n, c in TTS_STYLES}
     ttsvoice_var = tk.StringVar(
         value=style2name.get(chat_cfg.get("tts_style", "male"),
