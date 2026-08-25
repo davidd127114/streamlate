@@ -1329,6 +1329,13 @@ class App(tk.Tk):
         elif cmd == "exit":
             self.on_close()
             stop_everything()
+        # Windows tray menus cache checkmarks — refresh so the next open
+        # shows the real state (stale checks made users double-toggle)
+        try:
+            if getattr(self, "_tray_icon", None):
+                self._tray_icon.update_menu()
+        except Exception:
+            pass
 
     def _overlay_tray(self):
         try:
@@ -1376,7 +1383,8 @@ class App(tk.Tk):
                              lambda icon, item: __import__("webbrowser")
                              .open("http://localhost:8788")),
             pystray.MenuItem(tr("calltr"),
-                             lambda icon, item: toggle_subs_call(),
+                             lambda icon, item: (toggle_subs_call(),
+                                                 icon.update_menu()),
                              checked=lambda item: subs_call_enabled()),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem(tr("q_menu"), quality_submenu(self.cfg, pystray)),
@@ -1808,7 +1816,8 @@ def _run_tray(cfg, url):
                              lambda icon, item: __import__("webbrowser")
                              .open("http://localhost:8788")),
             pystray.MenuItem(tr("calltr"),
-                             lambda icon, item: toggle_subs_call(),
+                             lambda icon, item: (toggle_subs_call(),
+                                                 icon.update_menu()),
                              checked=lambda item: subs_call_enabled()),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem(tr("q_menu"), quality_submenu(cfg, pystray)),
