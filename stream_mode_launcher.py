@@ -70,6 +70,18 @@ def control_panel(en_chat, en_subs, updated, repaired=None):
     import webbrowser
     from i18n import tr
 
+    # single-instance: if a control panel is already open, focus it and exit
+    try:
+        import ctypes
+        u = ctypes.windll.user32
+        existing = u.FindWindowW(None, "Streamlate Control")
+        if existing:
+            u.ShowWindow(existing, 9)          # restore if minimized
+            u.SetForegroundWindow(existing)
+            return
+    except Exception:
+        pass
+
     BG, FG, ACC, DIM = "#141417", "#e8e8ee", "#a970ff", "#8a8a92"
     root = tk.Tk()
     root.title("Streamlate Control")
