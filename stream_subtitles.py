@@ -100,6 +100,7 @@ DEFAULTS = {
     "speak_to_viewers": True,    # your translated voice as rows in the
                                  # viewer chat feed (no bot login needed)
     "family_filter": False,      # censor profanity on viewer-facing output
+    "caption_style": "cute",     # cute | classic | bubbly | minimal
     "save_srt": True,            # write session subtitles as .srt for VODs
     "call_on_stream": False,     # caption voice-chat (Discord) on stream too
     "obs_cc": False,             # push native platform captions (CC button)
@@ -454,6 +455,7 @@ OBS_HTML = """<!doctype html>
        border-color:rgba(160,180,255,0.3); }
  @keyframes pop { from { opacity:0; transform:translateY(14px) scale(.94); }
                   to   { opacity:1; transform:none; } }
+__STYLE_CSS__
 </style></head>
 <body><div id="wrap"></div>
 <script>
@@ -480,6 +482,31 @@ tick();
 </script></body></html>"""
 
 
+# caption looks the streamer can pick — one dropdown, curated, no CSS exposed
+CAPTION_STYLES = {
+    "cute": "",   # the base style: Baloo, glassy purple pill, pink glow
+    "classic": """
+ body { font-family:'Segoe UI',system-ui,sans-serif; }
+ .line { background:rgba(0,0,0,0.55); border:none; border-radius:14px;
+         letter-spacing:0; box-shadow:none;
+         text-shadow:0 2px 6px rgba(0,0,0,0.9); animation:pop .18s ease-out; }
+""",
+    "bubbly": """
+ .line { background:rgba(60,22,66,0.66);
+         border:2px solid rgba(255,140,210,0.55);
+         text-shadow:0 2px 8px rgba(0,0,0,0.85),
+                     0 0 18px rgba(255,140,210,0.45); }
+ .line::before { content:'✦ '; color:#ffb3e2; }
+ .line::after  { content:' ✦'; color:#ffb3e2; }
+""",
+    "minimal": """
+ .line { background:transparent; border:none; box-shadow:none; padding:2px 8px;
+         text-shadow:0 0 4px #000, 0 0 8px #000, 2px 2px 3px #000,
+                     -2px -2px 3px #000, 2px -2px 3px #000, -2px 2px 3px #000; }
+""",
+}
+
+
 class SubsHandler(BaseHTTPRequestHandler):
     store = None
     cfg = None
@@ -502,6 +529,8 @@ class SubsHandler(BaseHTTPRequestHandler):
                 html = (OBS_HTML
                         .replace("__FONT__", str(self.cfg["font_px"]))
                         .replace("__FONT_EN__", str(int(self.cfg["font_px"] * 0.6)))
+                        .replace("__STYLE_CSS__", CAPTION_STYLES.get(
+                            self.cfg.get("caption_style", "cute"), ""))
                         .replace("__MAX_AGE__", str(self.cfg["max_age_seconds"]))
                         .replace("__SHOW_EN__",
                                  "true" if self.cfg["show_english"] else "false"))

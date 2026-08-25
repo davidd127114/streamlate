@@ -358,6 +358,16 @@ def main_gui():
                    font=("Segoe UI", 10)).pack(anchor="w")
 
     r = row(tr("wiz_look"), adv)
+    CAP_STYLES = [("Cute — round font, purple pill", "cute"),
+                  ("Classic — clean dark pill", "classic"),
+                  ("Bubbly — pink sparkles ✦", "bubbly"),
+                  ("Minimal — text only, outlined", "minimal")]
+    cap2name = {c: n for n, c in CAP_STYLES}
+    capstyle_var = tk.StringVar(
+        value=cap2name.get(subs_cfg.get("caption_style", "cute"),
+                           CAP_STYLES[0][0]))
+    ttk.Combobox(r, textvariable=capstyle_var, state="readonly", width=32,
+                 values=[n for n, _ in CAP_STYLES]).pack(anchor="w", pady=3)
     f3 = tk.Frame(r, bg=BG)
     f3.pack(anchor="w", pady=2)
     tk.Label(f3, text=tr("wiz_font"), bg=BG, fg=FG,
@@ -433,6 +443,7 @@ def main_gui():
             "call_device": "" if dev == call_dev_default else dev,
             "call_target": dict(LANGS)[call_lang_var.get()],
             "font_px": int(font_var.get()),
+            "caption_style": dict(CAP_STYLES)[capstyle_var.get()],
             "show_english": bool(showen_var.get()),
         }
         if hot_var.get().strip():
