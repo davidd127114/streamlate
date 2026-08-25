@@ -715,10 +715,17 @@ def main():
         threading.Thread(target=warm_ollama, args=(cfg,), daemon=True).start()
 
     def obs_setup_loop():
-        # OBS may start after Streamlate — keep offering for a while
+        # OBS (or Streamlabs) may start after Streamlate — keep offering
         for _ in range(30):
             if ensure_obs_sources(cfg):
                 return
+            try:
+                import slobs_link
+                if slobs_link.installed() and slobs_link.ensure_sources(
+                        log, cfg.get("obs_chat_enabled", False)):
+                    return
+            except Exception:
+                pass
             time.sleep(20)
     threading.Thread(target=obs_setup_loop, daemon=True).start()
 

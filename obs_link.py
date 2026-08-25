@@ -83,7 +83,13 @@ def status(cfg):
     d = _read_file()
     if d is None:
         if os.path.isdir(SLOBS_DIR):
-            return "slobs", ""   # Streamlabs Desktop — manual source, works
+            try:
+                import slobs_link
+                if slobs_link.reachable():
+                    return "slobs_auto", ""   # pipe up — we can auto-create
+            except Exception:
+                pass
+            return "slobs", ""   # Streamlabs — manual source instruction
         return "none", ""
     pw = effective_password(cfg)
     if try_connect(pw):

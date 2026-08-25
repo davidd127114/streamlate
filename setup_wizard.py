@@ -221,6 +221,7 @@ def main_gui():
                 "waiting": (tr("wiz_obs_wait"), "#e6c07b"),
                 "restart": (tr("wiz_obs_restart"), "#e6c07b"),
                 "slobs": (tr("wiz_obs_slobs"), "#e6c07b"),
+                "slobs_auto": (tr("wiz_obs_slobs_auto"), "#9adf9e"),
                 "none": (tr("wiz_obs_none"), "#8a8a92"),
             }[state]
             root.after(0, lambda: obs_lbl.config(text=txt, fg=col))
