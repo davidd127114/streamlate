@@ -81,7 +81,7 @@ class ChatSpeaker(threading.Thread):
     def say(self, user, text):
         if self.stop_ev.is_set():
             return
-        line = f"{user}. {text}"[:220]
+        line = (f"{user}. {text}" if user else text)[:220]
         try:
             self.q.put_nowait(line)
         except queue.Full:

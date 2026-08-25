@@ -337,6 +337,11 @@ def main_gui():
                              TTS_STYLES[0][0]))
     ttk.Combobox(r, textvariable=ttsvoice_var, state="readonly", width=24,
                  values=[n for n, _ in TTS_STYLES]).pack(anchor="w", pady=3)
+    ttsnames_var = tk.BooleanVar(value=bool(chat_cfg.get("tts_read_names")))
+    tk.Checkbutton(r, text=tr("wiz_tts_names"), variable=ttsnames_var, bg=BG,
+                   fg=FG, selectcolor="#26262c", activebackground=BG,
+                   activeforeground=FG,
+                   font=("Segoe UI", 10)).pack(anchor="w")
 
     r = row(tr("wiz_look"), adv)
     f3 = tk.Frame(r, bg=BG)
@@ -423,6 +428,7 @@ def main_gui():
                                   else spoken_code),
                       "tts_enabled": bool(tts_var.get()),
                       "tts_style": dict(TTS_STYLES)[ttsvoice_var.get()],
+                      "tts_read_names": bool(ttsnames_var.get()),
                       "family_filter": bool(family_var.get()),
                       "enable_chat": bool(en_chat_var.get()),
                       "enable_subs": bool(en_subs_var.get()),

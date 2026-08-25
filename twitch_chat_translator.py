@@ -69,6 +69,7 @@ DEFAULTS = {
     "my_lang": "en",             # language YOU read chat in (overlay + phone)
     "tts_enabled": False,        # read translated chat aloud
     "tts_volume": 0.9,
+    "tts_read_names": False,     # say "username said" before each message
     "family_filter": False,      # censor profanity on viewer-facing output
     "viewer_qr_enabled": False,  # public scan-anytime link to the chat page
     "inject_key": "",            # local secret guarding the inject endpoint
@@ -379,7 +380,8 @@ class TranslateWorker(threading.Thread):
                 spoken = translation or (
                     text if not LAUGH_RE.match(text.strip()) else None)
                 if spoken:
-                    SPEAKER["obj"].say(user, spoken)
+                    who = user if self.cfg.get("tts_read_names") else ""
+                    SPEAKER["obj"].say(who, spoken)
             self.out_q.put(("chat", user, color, text, translation))
 
     def viewer_translate(self, text):
