@@ -103,3 +103,11 @@ el micrófono del streamer, y la música con voces puede generar líneas
 sueltas. Si la música es TUYA, reprodúcela en otro dispositivo de salida y
 elige el del stream en *Fuente de audio*. **🎥 Volver al modo streamer** en
 el mismo panel lo revierte todo.
+
+### Enlace de voz — tu voz en el idioma de cada amigo
+
+Bandeja (morada) → **🎤 Enlace de voz**: copia una página pública donde
+cualquiera — sin instalar nada — lee lo que dices traducido en vivo al
+idioma que ELIJA (30 opciones). Se alimenta de la transcripción de TU
+micrófono: sin sonido del juego, sin música, sin otras voces. Usa el túnel
+del QR de espectadores cuando está activo.

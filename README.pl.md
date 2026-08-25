@@ -65,3 +65,11 @@ samego mikrofonu streamera, a muzyka z wokalem może dawać zbędne linie.
 Jeśli to TWOJA muzyka przeszkadza, odtwarzaj ją na innym urządzeniu i
 wybierz urządzenie streama w *Źródło dźwięku*. **🎥 Powrót do trybu
 streamera** w tym samym panelu przywraca wszystko.
+
+### Link głosowy — Twoja mowa w języku każdego znajomego
+
+Zasobnik (fioletowy) → **🎤 Link głosowy**: kopiuje publiczną stronę, na
+której każdy — bez instalowania czegokolwiek — czyta to, co mówisz,
+tłumaczone na żywo na wybrany przez SIEBIE język (30 opcji). Zasilana
+transkrypcją TWOJEGO mikrofonu: bez dźwięku gry, muzyki i innych głosów.
+Korzysta z tunelu QR widzów, gdy jest włączony.

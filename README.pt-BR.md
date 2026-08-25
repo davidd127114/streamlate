@@ -105,3 +105,11 @@ microfone do streamer, e música com vocal pode gerar linhas soltas. Se a
 música for a SUA, toque-a em outro dispositivo de saída e escolha o
 dispositivo da stream em *Fonte de áudio*. **🎥 Voltar ao modo streamer**
 no mesmo painel desfaz tudo.
+
+### Link de voz — sua fala no idioma de cada amigo
+
+Bandeja (roxa) → **🎤 Link de voz**: copia uma página pública onde qualquer
+pessoa — sem instalar nada — lê o que você fala traduzido ao vivo para o
+idioma que ELA escolher (30 opções). Alimentado pela transcrição do SEU
+microfone: sem som de jogo, sem música, sem outras vozes. Usa o túnel do QR
+de espectadores quando ativo (funciona de qualquer lugar).

@@ -127,6 +127,17 @@ device under *Audio source*.
 
 **🎥 Back to Streamer mode** in the same panel switches everything back.
 
+### Voice link — your speech, in each friend's language
+
+Tray (purple) → **🎤 Voice link**: copies a public page where anyone —
+no app needed — reads what you say live-translated into a language THEY
+pick (30 choices, saved per device). It is fed by your own microphone
+transcription, so it is perfectly isolated: no game sound, no music, no
+other voices. Uses the Viewers QR tunnel when enabled (works from
+anywhere), or your LAN address otherwise. Great for bilingual Discord
+crews: talk, they read.
+
+
 ## Make it yours
 
 Right-click the purple tray icon → **Change background image…** and pick any

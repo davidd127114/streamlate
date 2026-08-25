@@ -8,6 +8,7 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 STRINGS = {
     "en": {
+        "voicelink": "🎤 Voice link — share my speech translated",
         "p_viewer_mode": "👁 Viewer mode",
         "p_streamer_mode": "🎥 Back to Streamer mode",
         "p_viewer_row": "Stream translation",
@@ -115,6 +116,7 @@ STRINGS = {
         "wiz_ui_lang": "App language",
     },
     "pt": {
+        "voicelink": "🎤 Link de voz — compartilhar minha fala traduzida",
         "p_viewer_mode": "👁 Modo espectador",
         "p_streamer_mode": "🎥 Voltar ao modo streamer",
         "p_viewer_row": "Tradução da stream",
@@ -222,6 +224,7 @@ STRINGS = {
         "wiz_ui_lang": "Idioma do app",
     },
     "he": {
+        "voicelink": "🎤 קישור קול — שיתוף הדיבור שלי מתורגם",
         "p_viewer_mode": "👁 מצב צופה",
         "p_streamer_mode": "🎥 חזרה למצב סטרימר",
         "p_viewer_row": "תרגום השידור",
@@ -329,6 +332,7 @@ STRINGS = {
         "wiz_ui_lang": "שפת האפליקציה",
     },
     "pl": {
+        "voicelink": "🎤 Link głosowy — udostępnij moją mowę z tłumaczeniem",
         "p_viewer_mode": "👁 Tryb widza",
         "p_streamer_mode": "🎥 Powrót do trybu streamera",
         "p_viewer_row": "Tłumaczenie streama",
@@ -435,6 +439,7 @@ STRINGS = {
         "wiz_ui_lang": "Język aplikacji",
     },
     "ja": {
+        "voicelink": "🎤 音声リンク — 自分の声を翻訳して共有",
         "p_viewer_mode": "👁 視聴者モード",
         "p_streamer_mode": "🎥 配信者モードに戻る",
         "p_viewer_row": "配信の翻訳",
@@ -541,6 +546,7 @@ STRINGS = {
         "wiz_ui_lang": "アプリの言語",
     },
     "zh": {
+        "voicelink": "🎤 语音链接 — 分享我的语音翻译",
         "p_viewer_mode": "👁 观众模式",
         "p_streamer_mode": "🎥 返回主播模式",
         "p_viewer_row": "直播翻译",
@@ -647,6 +653,7 @@ STRINGS = {
         "wiz_ui_lang": "应用语言",
     },
     "ko": {
+        "voicelink": "🎤 음성 링크 — 내 음성 번역 공유",
         "p_viewer_mode": "👁 시청자 모드",
         "p_streamer_mode": "🎥 스트리머 모드로 돌아가기",
         "p_viewer_row": "방송 번역",
@@ -753,6 +760,7 @@ STRINGS = {
         "wiz_ui_lang": "앱 언어",
     },
     "es": {
+        "voicelink": "🎤 Enlace de voz — compartir mi voz traducida",
         "p_viewer_mode": "👁 Modo espectador",
         "p_streamer_mode": "🎥 Volver al modo streamer",
         "p_viewer_row": "Traducción del stream",

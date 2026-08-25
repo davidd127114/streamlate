@@ -627,6 +627,13 @@ class ChatHistory:
         with self.lock:
             return [m for m in self.items if m["id"] > last_id], self.next_id - 1
 
+    def mic_since(self, last_id):
+        """Only the streamer's own voice lines (🎤) — the Voice link feed."""
+        with self.lock:
+            return ([m for m in self.items
+                     if m["id"] > last_id and m["user"].startswith("🎤")],
+                    self.next_id - 1)
+
     def clear(self):
         with self.lock:
             self.items.clear()
@@ -673,6 +680,8 @@ PHONE_HTML = """<!doctype html>
 <div id="bgi"></div>
 <div id="scrim"></div>
 <div id="bar"><span id="chan">connecting…</span>
+ <a href="/voice" style="text-decoration:none; background:#26262c;
+   border-radius:8px; padding:8px 10px; font-size:14px">🎤</a>
  <button id="orig" class="on">PT</button>
  <button id="minus">A−</button><button id="plus">A+</button></div>
 <div id="empty" style="position:fixed; top:45%; left:0; right:0;
@@ -795,6 +804,150 @@ tick();
 </script></body></html>"""
 
 
+VOICE_HTML = """<!doctype html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Streamlate Voice</title>
+<style>
+ :root { --fs: 18px; }
+ * { margin:0; padding:0; box-sizing:border-box; }
+ body { background:#0e0e10; color:#e8e8ee;
+        font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
+ #bgi { position:fixed; inset:0; z-index:-2;
+        background:url('/bg') center/cover no-repeat; }
+ #scrim { position:fixed; inset:0; background:rgba(10,10,14,0.5); z-index:-1; }
+ #bar { position:fixed; top:0; left:0; right:0; background:#18181bee;
+        backdrop-filter:blur(6px); display:flex; align-items:center; gap:8px;
+        padding:10px 12px; padding-top:calc(10px + env(safe-area-inset-top)); z-index:10; }
+ #chan { font-weight:700; color:#a970ff; flex:1; font-size:15px;
+         overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+ select, button { background:#26262c; color:#e8e8ee; border:0;
+         border-radius:8px; padding:8px 10px; font-size:14px; }
+ #log { padding:64px 14px 24px;
+        padding-bottom:calc(24px + env(safe-area-inset-bottom));
+        font-size:var(--fs); line-height:1.5; overflow-wrap:break-word; }
+ .m { margin-bottom:10px; text-shadow:0 1px 4px rgba(0,0,0,0.9); }
+ .t { color:#55555c; font-size:0.7em; margin-right:6px; }
+ .orig { color:#77777f; font-size:0.78em; display:block; padding-left:14px; }
+ body.hideorig .orig { display:none; }
+</style></head>
+<body>
+<div id="bgi"></div>
+<div id="scrim"></div>
+<div id="bar"><span id="chan">🎤 …</span>
+ <select id="lang"></select>
+ <button id="orig">⤷</button>
+ <button id="minus">A−</button><button id="plus">A+</button></div>
+<div id="empty" style="position:fixed; top:45%; left:0; right:0;
+  text-align:center; color:#8a8a92; font-size:15px; padding:0 30px;">
+  🎤 Waiting for the streamer's voice…</div>
+<div id="log"></div>
+<script>
+const LANGS = {en:'English', pt:'Português', es:'Español', fr:'Français',
+ de:'Deutsch', ja:'日本語', ko:'한국어', ru:'Русский', zh:'中文', he:'עברית',
+ pl:'Polski', ar:'العربية', it:'Italiano', nl:'Nederlands', tr:'Türkçe',
+ hi:'हिन्दी', id:'Indonesia', vi:'Tiếng Việt', th:'ไทย', uk:'Українська',
+ cs:'Čeština', sv:'Svenska', ro:'Română', el:'Ελληνικά', hu:'Magyar',
+ da:'Dansk', fi:'Suomi', no:'Norsk', bg:'Български', ms:'Melayu'};
+let last = 0, fs = 18;
+const sel = document.getElementById('lang'), log = document.getElementById('log');
+for (const [c, n] of Object.entries(LANGS)){
+  const o = document.createElement('option'); o.value = c; o.textContent = n;
+  sel.appendChild(o);
+}
+let lang = '';
+try { lang = localStorage.getItem('sl_voice_lang') || ''; } catch(e){}
+if (!LANGS[lang]) lang = (navigator.language || 'en').slice(0, 2);
+if (!LANGS[lang]) lang = 'en';
+sel.value = lang;
+sel.onchange = () => { lang = sel.value;
+  try { localStorage.setItem('sl_voice_lang', lang); } catch(e){}
+  last = 0; log.innerHTML = ''; };
+let nsv = null, wl = null;
+async function keepAwake(){
+  try { if (navigator.wakeLock) { wl = await navigator.wakeLock.request('screen'); return; } } catch(e){}
+}
+['touchstart','click'].forEach(ev => document.addEventListener(ev, keepAwake));
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) keepAwake(); });
+function esc(s){ const d = document.createElement('span'); d.textContent = s; return d.innerHTML; }
+function atBottom(){ return innerHeight + scrollY >= document.body.scrollHeight - 60; }
+async function tick(){
+  try {
+    const r = await fetch('/voice.json?since=' + last + '&lang=' + lang);
+    const j = await r.json();
+    document.getElementById('chan').textContent = '🎤 ' + (j.channel || '');
+    if (j.lines.length){
+      const e = document.getElementById('empty');
+      if (e) e.style.display = 'none';
+      const stick = atBottom();
+      for (const m of j.lines){
+        const div = document.createElement('div'); div.className = 'm';
+        div.innerHTML = '<span class="t">' + m.ts + '</span>'
+          + '<span dir="auto">' + esc(m.text) + '</span>'
+          + (m.orig && m.orig !== m.text
+             ? '<span class="orig" dir="auto">⤷ ' + esc(m.orig) + '</span>' : '');
+        log.appendChild(div);
+      }
+      while (log.children.length > 250) log.removeChild(log.firstChild);
+      if (stick) scrollTo(0, document.body.scrollHeight);
+    }
+    last = j.latest;
+  } catch (e) {}
+  setTimeout(tick, 1300);
+}
+document.getElementById('plus').onclick = () => {
+  fs = Math.min(30, fs + 2); document.documentElement.style.setProperty('--fs', fs + 'px'); };
+document.getElementById('minus').onclick = () => {
+  fs = Math.max(12, fs - 2); document.documentElement.style.setProperty('--fs', fs + 'px'); };
+document.getElementById('orig').onclick = (e) => {
+  document.body.classList.toggle('hideorig'); e.target.classList.toggle('on'); };
+tick();
+</script>
+</body></html>"""
+
+
+# Voice-link feed: translate each spoken line once per requested language.
+# Multiple friends on the same language share the cache; the streamer's PC
+# does the work (free Google web chain — zero GPU).
+_VOICE_CACHE = {}
+_VOICE_ORDER = deque()
+_SUBS_TARGET = {"v": None}
+
+
+def subs_target_lang():
+    """The language the streamer's own captions translate to — those lines
+    (tr2) come from the best local model, so prefer them over Google."""
+    if _SUBS_TARGET["v"] is None:
+        try:
+            with open(os.path.join(APP_DIR, "subs_config.json"),
+                      encoding="utf-8-sig") as f:
+                _SUBS_TARGET["v"] = json.load(f).get("target_lang", "") or ""
+        except (OSError, ValueError):
+            _SUBS_TARGET["v"] = ""
+    return _SUBS_TARGET["v"]
+
+
+def voice_line_translate(mid, text, lang):
+    key = (mid, lang)
+    if key in _VOICE_CACHE:
+        return _VOICE_CACHE[key]
+    out = ""
+    try:
+        out = translate_clients5(text, target=lang)[0]
+    except Exception:
+        try:
+            out = translate_gtx(text, target=lang)[0]
+        except Exception:
+            out = ""
+    _VOICE_CACHE[key] = out
+    _VOICE_ORDER.append(key)
+    while len(_VOICE_ORDER) > 1000:
+        _VOICE_CACHE.pop(_VOICE_ORDER.popleft(), None)
+    return out
+
+
 class PhoneHandler(BaseHTTPRequestHandler):
     history = None   # set via subclass in start_phone_server
     app_cfg = None
@@ -864,6 +1017,32 @@ class PhoneHandler(BaseHTTPRequestHandler):
                     data = f.read()
                 ctype = "image/png" if bg.endswith(".png") else "image/jpeg"
                 self._reply(data, ctype)
+            elif self.path.startswith("/voice.json"):
+                qs = urllib.parse.parse_qs(
+                    urllib.parse.urlparse(self.path).query)
+                since = int((qs.get("since", ["0"])[0] or "0"))
+                lang = (qs.get("lang", ["en"])[0] or "en")[:5]
+                if not lang.replace("-", "").isalpha():
+                    lang = "en"
+                msgs, latest = self.history.mic_since(since)
+                lines = []
+                for m in msgs[-40:]:
+                    if lang == subs_target_lang() and m.get("tr2"):
+                        shown = m["tr2"]
+                    else:
+                        shown = (voice_line_translate(m["id"], m["text"],
+                                                      lang)
+                                 or m.get("tr2") or m["text"])
+                    lines.append({"id": m["id"], "ts": m["ts"],
+                                  "text": shown, "orig": m["text"]})
+                body = json.dumps({
+                    "channel": self.app_cfg.get("channel", ""),
+                    "latest": latest, "lines": lines,
+                }).encode("utf-8")
+                self._reply(body, "application/json")
+            elif self.path.startswith("/voice"):
+                self._reply(VOICE_HTML.encode("utf-8"),
+                            "text/html; charset=utf-8")
             elif self.path.startswith("/msgs"):
                 qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
                 since = int((qs.get("since", ["0"])[0] or "0"))
@@ -1326,6 +1505,24 @@ class App(tk.Tk):
                 not self.cfg.get("viewer_qr_enabled")
             save_config(self.cfg)
             ensure_viewer_tunnel(self.cfg)
+        elif cmd == "voicelink":
+            # public URL when the Viewers QR tunnel is up, LAN URL otherwise
+            t = VT.get("t")
+            base = getattr(t, "url", None) or self.phone_url
+            if base:
+                link = base.rstrip("/") + "/voice"
+                try:
+                    self.clipboard_clear()
+                    self.clipboard_append(link)
+                except Exception:
+                    pass
+                try:
+                    if getattr(self, "_tray_icon", None):
+                        self._tray_icon.notify(link, "Voice link copied")
+                except Exception:
+                    pass
+                import webbrowser
+                webbrowser.open(link)
         elif cmd == "exit":
             self.on_close()
             stop_everything()
@@ -1376,6 +1573,7 @@ class App(tk.Tk):
                              checked=lambda item: bool(self.cfg.get("overlay_ghost", True))),
             pystray.MenuItem(tr("tts"), put("tts"),
                              checked=lambda item: bool(self.cfg.get("tts_enabled"))),
+            pystray.MenuItem(tr("voicelink"), put("voicelink")),
             pystray.MenuItem(tr("viewerqr"), put("viewerqr"),
                              checked=lambda item: bool(self.cfg.get("viewer_qr_enabled"))),
             pystray.Menu.SEPARATOR,
