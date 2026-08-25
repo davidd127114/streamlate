@@ -1094,9 +1094,26 @@ class App(tk.Tk):
 
         if overlay:
             self._ghost_alpha = alpha
+            self._bg_for = (0, 0)
+            self._bg_job = None
+            self.canvas.bind("<Configure>", self._on_canvas_resize)
             self.after(300, self._apply_overlay_styles)
             self.after(500, self._ghost_tick)
             threading.Thread(target=self._overlay_tray, daemon=True).start()
+
+    def _on_canvas_resize(self, _e=None):
+        """The background must always match the canvas — re-fit it whenever
+        the size actually changes (startup races, grip resizes, anything)."""
+        size = (self.canvas.winfo_width(), self.canvas.winfo_height())
+        if size == self._bg_for or size[0] < 40:
+            return
+        if self._bg_job:
+            self.after_cancel(self._bg_job)
+        def refit():
+            self._bg_job = None
+            self._load_overlay_bg()
+            self._redraw_overlay()
+        self._bg_job = self.after(250, refit)
 
         self.after(80, self.poll)
 
@@ -1487,6 +1504,7 @@ class App(tk.Tk):
             img = ImageEnhance.Brightness(img).enhance(
                 float(self.cfg.get("background_dim", 0.35)))
             self._bg_photo = ImageTk.PhotoImage(img)
+            self._bg_for = (w, h)
             self.canvas.delete("bg")
             self.canvas.create_image(0, 0, anchor="nw", image=self._bg_photo,
                                      tags="bg")
