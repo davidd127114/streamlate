@@ -123,6 +123,14 @@ mic device/channel, `hotwords` (words Whisper should expect — add your
 game's terms!), `show_english`, remote `engine_url`.
 `config.json`: chat channel, model, overlay corner/opacity.
 
+## Works with
+
+**OBS Studio** (full magic: sources create themselves, native CC button) ·
+**Streamlabs Desktop, XSplit, vMix** and anything with a Browser/Webpage
+source (add `http://localhost:8788` once, 1400×300 — everything else works
+identically). Streaming platform doesn't matter: the captions live in your
+video, and chat reading covers Twitch, YouTube and Kick.
+
 ## Notes
 
 - Phone page works on your home network (carrier internet blocks incoming

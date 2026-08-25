@@ -8,6 +8,7 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 STRINGS = {
     "en": {
+        "wiz_obs_slobs": "Streamlabs detected — works! Add a Browser Source once: http://localhost:8788, 1400×300 (auto-setup is OBS-only)",
         "wiz_obs_ok": "✓ OBS linked — stream sources are added automatically",
         "wiz_obs_wait": "OBS will link automatically the next time OBS is open",
         "wiz_obs_restart": "Almost linked — restart OBS once to finish",
@@ -93,6 +94,7 @@ STRINGS = {
         "wiz_ui_lang": "App language",
     },
     "pt": {
+        "wiz_obs_slobs": "Streamlabs detectado — funciona! Adicione uma fonte Navegador uma vez: http://localhost:8788, 1400×300 (auto-config é só no OBS)",
         "wiz_obs_ok": "✓ OBS conectado — as fontes da stream são criadas sozinhas",
         "wiz_obs_wait": "O OBS conecta sozinho na próxima vez que ele abrir",
         "wiz_obs_restart": "Quase lá — reinicie o OBS uma vez para concluir",
@@ -178,6 +180,7 @@ STRINGS = {
         "wiz_ui_lang": "Idioma do app",
     },
     "he": {
+        "wiz_obs_slobs": "זוהה Streamlabs — עובד! הוסיפו מקור דפדפן פעם אחת: http://localhost:8788, ‏1400×300 (הגדרה אוטומטית רק ב-OBS)",
         "wiz_obs_ok": "✓ OBS מחובר — מקורות השידור נוצרים אוטומטית",
         "wiz_obs_wait": "OBS יתחבר אוטומטית בפעם הבאה שהוא ייפתח",
         "wiz_obs_restart": "כמעט מחובר — הפעילו את OBS מחדש פעם אחת",
@@ -263,6 +266,7 @@ STRINGS = {
         "wiz_ui_lang": "שפת האפליקציה",
     },
     "pl": {
+        "wiz_obs_slobs": "Wykryto Streamlabs — działa! Dodaj raz źródło Przeglądarka: http://localhost:8788, 1400×300 (auto-konfiguracja tylko w OBS)",
         "wiz_obs_ok": "✓ OBS połączony — źródła streamu dodają się same",
         "wiz_obs_wait": "OBS połączy się sam przy następnym uruchomieniu",
         "wiz_obs_restart": "Prawie gotowe — uruchom OBS ponownie raz",
@@ -347,6 +351,7 @@ STRINGS = {
         "wiz_ui_lang": "Język aplikacji",
     },
     "ja": {
+        "wiz_obs_slobs": "Streamlabs検出 — 使えます！ブラウザソースを一度追加: http://localhost:8788、1400×300（自動設定はOBSのみ）",
         "wiz_obs_ok": "✓ OBS連携済み — 配信ソースは自動で追加されます",
         "wiz_obs_wait": "次にOBSを開いたとき自動で連携します",
         "wiz_obs_restart": "あと少し — OBSを一度再起動してください",
@@ -431,6 +436,7 @@ STRINGS = {
         "wiz_ui_lang": "アプリの言語",
     },
     "zh": {
+        "wiz_obs_slobs": "检测到 Streamlabs — 可用！添加一次浏览器源: http://localhost:8788，1400×300（自动配置仅限 OBS）",
         "wiz_obs_ok": "✓ 已连接 OBS — 直播源会自动创建",
         "wiz_obs_wait": "下次打开 OBS 时会自动连接",
         "wiz_obs_restart": "就差一步 — 重启一次 OBS 即可完成",
@@ -515,6 +521,7 @@ STRINGS = {
         "wiz_ui_lang": "应用语言",
     },
     "ko": {
+        "wiz_obs_slobs": "Streamlabs 감지됨 — 작동해요! 브라우저 소스를 한 번 추가: http://localhost:8788, 1400×300 (자동 설정은 OBS 전용)",
         "wiz_obs_ok": "✓ OBS 연결됨 — 방송 소스가 자동으로 추가됩니다",
         "wiz_obs_wait": "다음에 OBS를 열면 자동으로 연결됩니다",
         "wiz_obs_restart": "거의 완료 — OBS를 한 번 재시작하세요",
@@ -599,6 +606,7 @@ STRINGS = {
         "wiz_ui_lang": "앱 언어",
     },
     "es": {
+        "wiz_obs_slobs": "Streamlabs detectado — ¡funciona! Agrega una fuente Navegador una vez: http://localhost:8788, 1400×300 (auto-config solo en OBS)",
         "wiz_obs_ok": "✓ OBS conectado — las fuentes del stream se crean solas",
         "wiz_obs_wait": "OBS se conectará solo la próxima vez que se abra",
         "wiz_obs_restart": "Casi listo — reinicia OBS una vez para terminar",

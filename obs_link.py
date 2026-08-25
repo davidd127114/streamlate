@@ -75,10 +75,15 @@ def effective_password(cfg):
     return (cfg.get("obs_ws_password") or "").strip() or file_password()
 
 
+SLOBS_DIR = os.path.join(os.environ.get("APPDATA", ""), "slobs-client")
+
+
 def status(cfg):
-    """('ok'|'waiting'|'restart'|'none', password) for UI display."""
+    """('ok'|'waiting'|'restart'|'slobs'|'none', password) for UI display."""
     d = _read_file()
     if d is None:
+        if os.path.isdir(SLOBS_DIR):
+            return "slobs", ""   # Streamlabs Desktop — manual source, works
         return "none", ""
     pw = effective_password(cfg)
     if try_connect(pw):
