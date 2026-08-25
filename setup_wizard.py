@@ -127,17 +127,31 @@ def main_gui():
     root = tk.Tk()
     root.title(tr("wiz_title"))
     root.configure(bg="#141417")
-    root.resizable(False, False)
+    root.resizable(False, True)
     FG, BG, ACC = "#e8e8ee", "#141417", "#a970ff"
 
+    # scrollable body — More settings grew taller than screens
+    _canvas = tk.Canvas(root, bg=BG, highlightthickness=0, width=500,
+                        height=min(860, root.winfo_screenheight() - 160))
+    _vsb = tk.Scrollbar(root, command=_canvas.yview)
+    _canvas.configure(yscrollcommand=_vsb.set)
+    _vsb.pack(side="right", fill="y")
+    _canvas.pack(side="left", fill="both", expand=True)
+    inner = tk.Frame(_canvas, bg=BG)
+    _canvas.create_window((0, 0), window=inner, anchor="nw", width=500)
+    inner.bind("<Configure>", lambda e: _canvas.configure(
+        scrollregion=_canvas.bbox("all")))
+    _canvas.bind_all("<MouseWheel>", lambda e: _canvas.yview_scroll(
+        -e.delta // 120, "units"))
+
     def row(label, parent=None):
-        f = tk.Frame(parent or root, bg=BG)
+        f = tk.Frame(parent or inner, bg=BG)
         f.pack(fill="x", padx=24, pady=(8, 0))
         tk.Label(f, text=label, bg=BG, fg=FG,
                  font=("Segoe UI", 10, "bold")).pack(anchor="w")
         return f
 
-    tk.Label(root, text="Streamlate", bg=BG, fg=ACC,
+    tk.Label(inner, text="Streamlate", bg=BG, fg=ACC,
              font=("Segoe UI", 16, "bold"), pady=8).pack()
 
     r = row(tr("wiz_channel"))
@@ -226,7 +240,7 @@ def main_gui():
              font=("Segoe UI", 10)).pack(anchor="w", pady=3)
 
     # ---------------- advanced (folded away for first-time users) ----------
-    adv = tk.Frame(root, bg=BG)
+    adv = tk.Frame(inner, bg=BG)
     adv_open = tk.BooleanVar(value=False)
 
     def toggle_adv():
@@ -239,7 +253,7 @@ def main_gui():
             adv_open.set(True)
             adv_btn.config(text="⚙  " + tr("wiz_more") + "  ▾")
 
-    adv_btn = tk.Button(root, text="", command=toggle_adv, bg="#26262c",
+    adv_btn = tk.Button(inner, text="", command=toggle_adv, bg="#26262c",
                         fg=FG, bd=0, font=("Segoe UI", 10), padx=14, pady=5)
     adv_btn.pack(pady=(12, 0))
 
@@ -378,7 +392,7 @@ def main_gui():
     tk.Entry(r, textvariable=url_var, width=42,
              font=("Segoe UI", 10)).pack(anchor="w", pady=3)
 
-    status = tk.Label(root, text="", bg=BG, fg="#c9a2ff", font=("Segoe UI", 10))
+    status = tk.Label(inner, text="", bg=BG, fg="#c9a2ff", font=("Segoe UI", 10))
     status.pack(pady=(8, 0))
     toggle_adv(), toggle_adv()   # initialize button label (ends closed)
 
@@ -445,7 +459,7 @@ def main_gui():
             return
         threading.Thread(target=pull_then_save, daemon=True).start()
 
-    tk.Button(root, text=tr("wiz_save"), command=save, bg=ACC, fg="white",
+    tk.Button(inner, text=tr("wiz_save"), command=save, bg=ACC, fg="white",
               font=("Segoe UI", 11, "bold"), bd=0, padx=24,
               pady=8).pack(pady=16)
     root.mainloop()

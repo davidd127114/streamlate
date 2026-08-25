@@ -432,20 +432,27 @@ class SubtitleStore:
 
 OBS_HTML = """<!doctype html>
 <html><head><meta charset="utf-8"><title>subs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600&display=swap" rel="stylesheet">
 <style>
  * { margin:0; padding:0; }
  body { background:transparent; overflow:hidden;
-        font-family:'Segoe UI',system-ui,sans-serif; }
+        font-family:'Baloo 2','Segoe UI',system-ui,sans-serif; }
  #wrap { position:fixed; left:50%; bottom:3.5%; transform:translateX(-50%);
          width:72%; text-align:center; }
  .line { display:inline-block; unicode-bidi:plaintext;
-         background:rgba(0,0,0,0.55); color:#fff;
-         font-size:__FONT__px; line-height:1.35; font-weight:600;
-         padding:6px 22px; border-radius:14px; margin-top:8px;
-         text-shadow:0 2px 6px rgba(0,0,0,0.9);
-         animation:pop 0.18s ease-out; }
- .en { font-size:__FONT_EN__px; opacity:0.75; font-weight:400; }
- @keyframes pop { from { opacity:0; transform:translateY(10px); }
+         background:rgba(28,18,44,0.62); color:#fff;
+         font-size:__FONT__px; line-height:1.3; font-weight:600;
+         letter-spacing:0.3px;
+         padding:5px 26px 7px; border-radius:999px; margin-top:8px;
+         border:2px solid rgba(255,170,220,0.35);
+         box-shadow:0 4px 18px rgba(0,0,0,0.35);
+         text-shadow:0 2px 8px rgba(0,0,0,0.85),
+                     0 0 14px rgba(255,150,220,0.25);
+         animation:pop 0.28s cubic-bezier(.34,1.56,.64,1); }
+ .en { font-size:__FONT_EN__px; opacity:0.7; font-weight:500;
+       border-color:rgba(160,180,255,0.3); }
+ @keyframes pop { from { opacity:0; transform:translateY(14px) scale(.94); }
                   to   { opacity:1; transform:none; } }
 </style></head>
 <body><div id="wrap"></div>
