@@ -46,6 +46,7 @@ SPECIAL_STYLES = {
     "anime":     ("ja-JP-NanamiNeural",   "+4%", "+2Hz"),
     "kawaii":    ("ja-JP-NanamiNeural",   "+8%", "+18Hz"),
     "xiaoxiao":  ("zh-CN-XiaoxiaoNeural", "+4%", "+8Hz"),
+    "xiaoxiao_max": ("zh-CN-XiaoxiaoNeural", "+8%", "+20Hz"),
     "cutepitch": ("en-US-JennyNeural",    "+8%", "+30Hz"),
     "sunhi":     ("ko-KR-SunHiNeural",    "+5%", "+10Hz"),
 }

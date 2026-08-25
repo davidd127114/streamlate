@@ -328,6 +328,7 @@ def main_gui():
                   ("Anime — Nanami", "anime"),
                   ("Anime — extra kawaii", "kawaii"),
                   ("Anime — Xiaoxiao", "xiaoxiao"),
+                  ("Anime — Xiaoxiao MAX kawaii", "xiaoxiao_max"),
                   ("Cute high-pitch (no accent)", "cutepitch"),
                   ("Anime — SunHi", "sunhi")]
     style2name = {c: n for n, c in TTS_STYLES}
