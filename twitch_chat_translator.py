@@ -1091,14 +1091,34 @@ class App(tk.Tk):
         try:
             import ctypes
             from ctypes import wintypes
-            pt = wintypes.POINT()
-            ctypes.windll.user32.GetCursorPos(ctypes.byref(pt))
+            u = ctypes.windll.user32
+
+            class CURSORINFO(ctypes.Structure):
+                _fields_ = [("cbSize", wintypes.DWORD),
+                            ("flags", wintypes.DWORD),
+                            ("hCursor", ctypes.c_void_p),
+                            ("pt", wintypes.POINT)]
+
+            ci = CURSORINFO()
+            ci.cbSize = ctypes.sizeof(CURSORINFO)
+            u.GetCursorInfo(ctypes.byref(ci))
+            cursor_visible = bool(ci.flags & 0x1)
+            # a game that clips the cursor to a rect has captured the mouse
+            clip = wintypes.RECT()
+            u.GetClipCursor(ctypes.byref(clip))
+            sw = u.GetSystemMetrics(78)   # virtual screen width
+            sh = u.GetSystemMetrics(79)   # virtual screen height
+            clipped = (clip.right - clip.left) < sw or \
+                      (clip.bottom - clip.top) < sh
+            # in-game (hidden or fenced cursor): flicks must never fade chat
+            captured = (not cursor_visible) or clipped
+            pt = ci.pt
             m = 16
             inside = (self.winfo_x() - m <= pt.x
                       <= self.winfo_x() + self.winfo_width() + m
                       and self.winfo_y() - m <= pt.y
                       <= self.winfo_y() + self.winfo_height() + m)
-            want = (0.06 if (inside and self.overlay_locked
+            want = (0.06 if (inside and not captured and self.overlay_locked
                              and self.cfg.get("overlay_ghost", True))
                     else float(self.cfg["overlay_opacity"]))
             cur = self._ghost_alpha
