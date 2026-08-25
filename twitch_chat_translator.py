@@ -651,6 +651,10 @@ PHONE_HTML = """<!doctype html>
 <div id="bar"><span id="chan">connecting…</span>
  <button id="orig" class="on">PT</button>
  <button id="minus">A−</button><button id="plus">A+</button></div>
+<div id="empty" style="position:fixed; top:45%; left:0; right:0;
+  text-align:center; color:#8a8a92; font-size:15px; padding:0 30px;">
+  ✓ Connected — no chat messages yet.<br>
+  <span style="font-size:13px">New messages appear here instantly.</span></div>
 <div id="log"></div>
 <button id="down">▼ new messages</button>
 <script>
@@ -665,6 +669,8 @@ async function tick(){
     document.getElementById('chan').textContent = '#' + j.channel
       + (j.viewers != null ? '  ·  👁 ' + j.viewers : '');
     if (j.msgs.length){
+      const e = document.getElementById('empty');
+      if (e) e.style.display = 'none';
       const stick = atBottom();
       for (const m of j.msgs.filter(x => !x.obs_only)){
         const div = document.createElement('div'); div.className = 'm';
