@@ -211,6 +211,27 @@ def control_panel(en_chat, en_subs, updated, repaired=None):
         threading.Thread(target=work, daemon=True).start()
     mkbtn(4, tr("p_diag"), run_diagnose)
 
+    copyerr_btn = {}
+
+    def copy_errors():
+        try:
+            import doctor
+            snippet = doctor.recent_errors(APP_DIR)
+            root.clipboard_clear()
+            root.clipboard_append(snippet)
+            b = copyerr_btn["b"]
+            b.config(text="✓")
+            root.after(2000, lambda: b.config(text=tr("p_copyerr")))
+        except Exception:
+            pass
+    copyerr_btn["b"] = tk.Button(btns, text=tr("p_copyerr"),
+                                 command=copy_errors, bg="#26262c", fg=FG,
+                                 bd=0, font=("Segoe UI", 10), padx=14,
+                                 pady=7, activebackground="#3a3a44",
+                                 activeforeground=FG)
+    copyerr_btn["b"].grid(row=1, column=0, columnspan=5, padx=4,
+                          pady=(6, 0))
+
     def do_repair():
         repair_btn.config(state="disabled", text="…")
 

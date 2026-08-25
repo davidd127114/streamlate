@@ -81,6 +81,45 @@ def diagnose(app_dir):
     return msgs, fixes
 
 
+def recent_errors(app_dir, tail_lines=6):
+    """Compact support snippet for the clipboard: version, package state,
+    and each log's recent errors + last lines. Sized for a Discord paste."""
+    parts = [f"=== Streamlate error report {time.strftime('%Y-%m-%d %H:%M')} ==="]
+    try:
+        with open(os.path.join(app_dir, ".version")) as f:
+            parts.append("version: " + f.read().strip()[:10])
+    except OSError:
+        parts.append("version: unknown")
+    parts.append(f"python: {sys.version.split()[0]}")
+    miss = missing_deps()
+    parts.append("packages: " + ("all OK" if not miss
+                                 else "MISSING " + ", ".join(miss)))
+    for fname in ("subs.log", "translator.log"):
+        path = os.path.join(app_dir, fname)
+        parts.append(f"\n--- {fname} ---")
+        try:
+            with open(path, encoding="utf-8", errors="replace") as f:
+                f.seek(0, 2)
+                f.seek(max(0, f.tell() - 24000))
+                lines = [ln.rstrip() for ln in f.read().splitlines()
+                         if ln.strip()]
+        except OSError:
+            parts.append("(missing)")
+            continue
+        errs = [ln for ln in lines
+                if any(k in ln.lower() for k in
+                       ("fatal", "error", "failed", "traceback",
+                        "exception", "missing"))][-8:]
+        if errs:
+            parts.append("recent errors:")
+            parts.extend("  " + e[:200] for e in errs)
+        else:
+            parts.append("no recent errors")
+        parts.append("last lines:")
+        parts.extend("  " + ln[:200] for ln in lines[-tail_lines:])
+    return "\n".join(parts)[:6000]
+
+
 def write_report(app_dir):
     out = os.path.join(os.path.expanduser("~"), "Desktop",
                        "streamlate_diagnostics.txt")

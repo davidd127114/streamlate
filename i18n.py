@@ -8,6 +8,7 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 STRINGS = {
     "en": {
+        "p_copyerr": "Copy errors 📋",
         "wiz_obs_slobs_auto": "✓ Streamlabs linked — stream sources are added automatically",
         "wiz_tts_names": "Also say the username before each message",
         "viewerqr": "Viewers QR — public link to read my chat",
@@ -97,6 +98,7 @@ STRINGS = {
         "wiz_ui_lang": "App language",
     },
     "pt": {
+        "p_copyerr": "Copiar erros 📋",
         "wiz_obs_slobs_auto": "✓ Streamlabs conectado — as fontes são criadas sozinhas",
         "wiz_tts_names": "Falar também o nome antes de cada mensagem",
         "viewerqr": "QR dos viewers — link público do meu chat",
@@ -186,6 +188,7 @@ STRINGS = {
         "wiz_ui_lang": "Idioma do app",
     },
     "he": {
+        "p_copyerr": "העתקת שגיאות 📋",
         "wiz_obs_slobs_auto": "✓ Streamlabs מחובר — המקורות נוצרים אוטומטית",
         "wiz_tts_names": "להקריא גם את שם המשתמש לפני כל הודעה",
         "viewerqr": "QR לצופים — קישור ציבורי לצ'אט שלי",
@@ -275,6 +278,7 @@ STRINGS = {
         "wiz_ui_lang": "שפת האפליקציה",
     },
     "pl": {
+        "p_copyerr": "Kopiuj błędy 📋",
         "wiz_obs_slobs_auto": "✓ Streamlabs połączony — źródła dodają się same",
         "wiz_tts_names": "Czytaj też nazwę użytkownika przed każdą wiadomością",
         "viewerqr": "QR dla widzów — publiczny link do mojego czatu",
@@ -363,6 +367,7 @@ STRINGS = {
         "wiz_ui_lang": "Język aplikacji",
     },
     "ja": {
+        "p_copyerr": "エラーをコピー 📋",
         "wiz_obs_slobs_auto": "✓ Streamlabs連携済み — ソースは自動追加されます",
         "wiz_tts_names": "各メッセージの前にユーザー名も読む",
         "viewerqr": "視聴者QR — チャットを読める公開リンク",
@@ -451,6 +456,7 @@ STRINGS = {
         "wiz_ui_lang": "アプリの言語",
     },
     "zh": {
+        "p_copyerr": "复制错误 📋",
         "wiz_obs_slobs_auto": "✓ 已连接 Streamlabs — 来源会自动创建",
         "wiz_tts_names": "在每条消息前也读出用户名",
         "viewerqr": "观众二维码 — 阅读我聊天的公开链接",
@@ -539,6 +545,7 @@ STRINGS = {
         "wiz_ui_lang": "应用语言",
     },
     "ko": {
+        "p_copyerr": "오류 복사 📋",
         "wiz_obs_slobs_auto": "✓ Streamlabs 연결됨 — 소스가 자동 추가됩니다",
         "wiz_tts_names": "메시지 앞에 사용자 이름도 읽기",
         "viewerqr": "시청자 QR — 내 채팅 공개 링크",
@@ -627,6 +634,7 @@ STRINGS = {
         "wiz_ui_lang": "앱 언어",
     },
     "es": {
+        "p_copyerr": "Copiar errores 📋",
         "wiz_obs_slobs_auto": "✓ Streamlabs conectado — las fuentes se crean solas",
         "wiz_tts_names": "Decir también el nombre antes de cada mensaje",
         "viewerqr": "QR de viewers — enlace público de mi chat",
