@@ -174,11 +174,13 @@ def inject_streamer_line(text, translated, channel):
     body = json.dumps({"user": "🎤 " + (channel or "streamer"),
                        "color": "#c9a2ff", "text": text, "tr2": translated,
                        "obs_only": True}).encode("utf-8")
+    from call_audio import inject_key
     for port in range(8765, 8771):
         try:
             req = urllib.request.Request(
                 f"http://127.0.0.1:{port}/inject", data=body,
-                headers={"Content-Type": "application/json"})
+                headers={"Content-Type": "application/json",
+                         "X-SL-Key": inject_key()})
             with urllib.request.urlopen(req, timeout=3) as r:
                 if r.status == 200:
                     return True

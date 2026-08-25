@@ -70,7 +70,25 @@ DEFAULTS = {
     "tts_enabled": False,        # read translated chat aloud
     "tts_volume": 0.9,
     "family_filter": False,      # censor profanity on viewer-facing output
+    "viewer_qr_enabled": False,  # public scan-anytime link to the chat page
+    "inject_key": "",            # local secret guarding the inject endpoint
 }
+
+VT = {"t": None}
+
+
+def ensure_viewer_tunnel(cfg):
+    if cfg.get("viewer_qr_enabled") and VT["t"] is None:
+        try:
+            from viewer_tunnel import ViewerTunnel
+            VT["t"] = ViewerTunnel(APP_DIR, int(cfg.get("http_port", 8765)),
+                                   log)
+            VT["t"].start()
+        except Exception as e:
+            log(f"viewers qr start failed: {e}")
+    elif not cfg.get("viewer_qr_enabled") and VT["t"] is not None:
+        VT["t"].stop()
+        VT["t"] = None
 
 SPEAKER = {"obj": None}
 
@@ -796,6 +814,12 @@ class PhoneHandler(BaseHTTPRequestHandler):
                 self.send_error(400)
                 return
             d = json.loads(self.rfile.read(n))
+            # the page may be public (Viewers QR tunnel) — writing needs the
+            # local secret so nobody can push fake messages onto the stream
+            key = self.app_cfg.get("inject_key") or ""
+            if not key or self.headers.get("X-SL-Key") != key:
+                self.send_error(403)
+                return
             user = str(d.get("user", "🎧"))[:40]
             color = str(d.get("color", "#7fd4ff"))[:9]
             text = str(d.get("text", ""))[:500]
@@ -1050,6 +1074,7 @@ class App(tk.Tk):
 
         self.history = ChatHistory()
         ensure_speaker(self.cfg)
+        ensure_viewer_tunnel(self.cfg)
         self.worker = TranslateWorker(self.raw_q, self.ui_q, self.cfg, self.history)
         self.worker.start()
 
@@ -1277,6 +1302,11 @@ class App(tk.Tk):
             self.cfg["tts_enabled"] = not self.cfg.get("tts_enabled")
             save_config(self.cfg)
             ensure_speaker(self.cfg)
+        elif cmd == "viewerqr":
+            self.cfg["viewer_qr_enabled"] = \
+                not self.cfg.get("viewer_qr_enabled")
+            save_config(self.cfg)
+            ensure_viewer_tunnel(self.cfg)
         elif cmd == "exit":
             self.on_close()
             stop_everything()
@@ -1320,6 +1350,8 @@ class App(tk.Tk):
                              checked=lambda item: bool(self.cfg.get("overlay_ghost", True))),
             pystray.MenuItem(tr("tts"), put("tts"),
                              checked=lambda item: bool(self.cfg.get("tts_enabled"))),
+            pystray.MenuItem(tr("viewerqr"), put("viewerqr"),
+                             checked=lambda item: bool(self.cfg.get("viewer_qr_enabled"))),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem(tr("preview"),
                              lambda icon, item: __import__("webbrowser")
@@ -1778,6 +1810,7 @@ def run_headless(cfg):
         return
     history = ChatHistory()
     ensure_speaker(cfg)
+    ensure_viewer_tunnel(cfg)
     raw_q, ui_q = queue.Queue(), queue.Queue()
     TranslateWorker(raw_q, ui_q, cfg, history).start()
     port, _srv = start_phone_server(history, cfg)
@@ -1796,6 +1829,10 @@ def main():
     lower_priority()
     from quality import apply_quality
     cfg = apply_quality(load_config())
+    if not cfg.get("inject_key"):
+        import uuid
+        cfg["inject_key"] = uuid.uuid4().hex
+        save_config(cfg)
     ENGINE_URL = cfg.get("engine_url") or ENGINE_URL
     if cfg.get("pin_efficiency_cores"):
         pin_to_efficiency_cores()

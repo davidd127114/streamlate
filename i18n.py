@@ -8,6 +8,7 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 STRINGS = {
     "en": {
+        "viewerqr": "Viewers QR — public link to read my chat",
         "wiz_obs_slobs": "Streamlabs detected — works! Add a Browser Source once: http://localhost:8788, 1400×300 (auto-setup is OBS-only)",
         "wiz_obs_ok": "✓ OBS linked — stream sources are added automatically",
         "wiz_obs_wait": "OBS will link automatically the next time OBS is open",
@@ -94,6 +95,7 @@ STRINGS = {
         "wiz_ui_lang": "App language",
     },
     "pt": {
+        "viewerqr": "QR dos viewers — link público do meu chat",
         "wiz_obs_slobs": "Streamlabs detectado — funciona! Adicione uma fonte Navegador uma vez: http://localhost:8788, 1400×300 (auto-config é só no OBS)",
         "wiz_obs_ok": "✓ OBS conectado — as fontes da stream são criadas sozinhas",
         "wiz_obs_wait": "O OBS conecta sozinho na próxima vez que ele abrir",
@@ -180,6 +182,7 @@ STRINGS = {
         "wiz_ui_lang": "Idioma do app",
     },
     "he": {
+        "viewerqr": "QR לצופים — קישור ציבורי לצ'אט שלי",
         "wiz_obs_slobs": "זוהה Streamlabs — עובד! הוסיפו מקור דפדפן פעם אחת: http://localhost:8788, ‏1400×300 (הגדרה אוטומטית רק ב-OBS)",
         "wiz_obs_ok": "✓ OBS מחובר — מקורות השידור נוצרים אוטומטית",
         "wiz_obs_wait": "OBS יתחבר אוטומטית בפעם הבאה שהוא ייפתח",
@@ -266,6 +269,7 @@ STRINGS = {
         "wiz_ui_lang": "שפת האפליקציה",
     },
     "pl": {
+        "viewerqr": "QR dla widzów — publiczny link do mojego czatu",
         "wiz_obs_slobs": "Wykryto Streamlabs — działa! Dodaj raz źródło Przeglądarka: http://localhost:8788, 1400×300 (auto-konfiguracja tylko w OBS)",
         "wiz_obs_ok": "✓ OBS połączony — źródła streamu dodają się same",
         "wiz_obs_wait": "OBS połączy się sam przy następnym uruchomieniu",
@@ -351,6 +355,7 @@ STRINGS = {
         "wiz_ui_lang": "Język aplikacji",
     },
     "ja": {
+        "viewerqr": "視聴者QR — チャットを読める公開リンク",
         "wiz_obs_slobs": "Streamlabs検出 — 使えます！ブラウザソースを一度追加: http://localhost:8788、1400×300（自動設定はOBSのみ）",
         "wiz_obs_ok": "✓ OBS連携済み — 配信ソースは自動で追加されます",
         "wiz_obs_wait": "次にOBSを開いたとき自動で連携します",
@@ -436,6 +441,7 @@ STRINGS = {
         "wiz_ui_lang": "アプリの言語",
     },
     "zh": {
+        "viewerqr": "观众二维码 — 阅读我聊天的公开链接",
         "wiz_obs_slobs": "检测到 Streamlabs — 可用！添加一次浏览器源: http://localhost:8788，1400×300（自动配置仅限 OBS）",
         "wiz_obs_ok": "✓ 已连接 OBS — 直播源会自动创建",
         "wiz_obs_wait": "下次打开 OBS 时会自动连接",
@@ -521,6 +527,7 @@ STRINGS = {
         "wiz_ui_lang": "应用语言",
     },
     "ko": {
+        "viewerqr": "시청자 QR — 내 채팅 공개 링크",
         "wiz_obs_slobs": "Streamlabs 감지됨 — 작동해요! 브라우저 소스를 한 번 추가: http://localhost:8788, 1400×300 (자동 설정은 OBS 전용)",
         "wiz_obs_ok": "✓ OBS 연결됨 — 방송 소스가 자동으로 추가됩니다",
         "wiz_obs_wait": "다음에 OBS를 열면 자동으로 연결됩니다",
@@ -606,6 +613,7 @@ STRINGS = {
         "wiz_ui_lang": "앱 언어",
     },
     "es": {
+        "viewerqr": "QR de viewers — enlace público de mi chat",
         "wiz_obs_slobs": "Streamlabs detectado — ¡funciona! Agrega una fuente Navegador una vez: http://localhost:8788, 1400×300 (auto-config solo en OBS)",
         "wiz_obs_ok": "✓ OBS conectado — las fuentes del stream se crean solas",
         "wiz_obs_wait": "OBS se conectará solo la próxima vez que se abra",

@@ -11,11 +11,28 @@ main source of false captions — mute music or use the optional VB-Cable
 isolation setup in the README if that bothers you.
 """
 import json
+import os
 import threading
 import time
 import urllib.request
 
 import numpy as np
+
+_KEY = {"v": None}
+
+
+def inject_key():
+    """Local secret the chat process demands on /inject (the page may be
+    public via the Viewers QR tunnel — only we may write to it)."""
+    if _KEY["v"] is None:
+        try:
+            cfg_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), "config.json")
+            with open(cfg_path, encoding="utf-8-sig") as f:
+                _KEY["v"] = json.load(f).get("inject_key", "")
+        except (OSError, ValueError):
+            _KEY["v"] = ""
+    return _KEY["v"]
 
 
 class CallListener(threading.Thread):
@@ -41,7 +58,8 @@ class CallListener(threading.Thread):
             try:
                 req = urllib.request.Request(
                     f"http://127.0.0.1:{port}/inject", data=body,
-                    headers={"Content-Type": "application/json"})
+                    headers={"Content-Type": "application/json",
+                             "X-SL-Key": inject_key()})
                 with urllib.request.urlopen(req, timeout=3) as r:
                     if r.status == 200:
                         self.inject_port = port
